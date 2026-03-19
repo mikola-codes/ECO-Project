@@ -1,1 +1,146 @@
-ÿþ
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECOZONE - Fingerprint Attendance System</title>
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="brand-header">
+        <img src="assets/images/logo.jpg" alt="ECOZONE Logo" class="brand-logo">
+        <h1>ECOZONE</h1>
+        <div class="subtitle">Fingerprint Attendance System</div>
+    </div>
+
+    <div class="main-container">
+
+        <!-- Enrollment Card -->
+        <div class="section-card mb-4">
+            <div class="card-header-bar">
+                <h5>Enroll New Employee</h5>
+            </div>
+            <div class="card-body-content">
+                <form id="enrollForm">
+                    <div class="mb-3">
+                        <input type="text" id="firstName" class="form-control" placeholder="First Name" required>
+                    </div>
+                    <div class="mb-3">
+                        <input type="text" id="lastName" class="form-control" placeholder="Last Name" required>
+                    </div>
+                    <div class="mb-3">
+                        <select id="position" class="form-control">
+                            <option value="" disabled selected>Select Position</option>
+                            <option value="Chairman">Chairman</option>
+                            <option value="Vice Chairman">Vice Chairman</option>
+                            <option value="Administrative Assistant">Administrative Assistant</option>
+                            <option value="Chief">Chief</option>
+                            <option value="Secretary">Secretary</option>
+                            <option value="Treasurer">Treasurer</option>
+                            <option value="Technical Support">Technical Support</option>
+                            <option value="Member">Member</option>
+                            
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-action w-100">Enroll &amp; Scan Fingerprint</button>
+                </form>
+                <p id="enrollMessage" class="status-message"></p>
+            </div>
+        </div>
+
+        <!-- Verification Card -->
+        <div class="section-card mb-4">
+            <div class="card-header-bar">
+                <h5>Verify Attendance</h5>
+            </div>
+            <div class="card-body-content text-center">
+                <span class="fingerprint-icon">&#9758;</span>
+                <p style="color: #888; font-size: 14px; margin-bottom: 20px;">Place your finger on the scanner and click the button below</p>
+                <button id="verifyBtn" class="btn btn-scan">Scan Fingerprint</button>
+                <p id="verifyMessage" class="status-message"></p>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="text-center">
+            <a href="attendance.html" class="nav-link-bottom">View Attendance Logs &rarr;</a>
+        </div>
+
+        <div class="footer-text">ECOZONE Attendance System &copy; 2026</div>
+    </div>
+
+    <script src="libs/bootstrap.bundle.min.js"></script>
+    <script>
+        // Enrollment form elements
+        var enrollForm = document.getElementById('enrollForm');
+        var enrollMessageDisplay = document.getElementById('enrollMessage');
+
+        // Submit enrollment form
+        enrollForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            var firstNameInput = document.getElementById('firstName').value;
+            var lastNameInput = document.getElementById('lastName').value;
+            var positionInput = document.getElementById('position').value;
+
+            var enrollFormData = new FormData();
+            enrollFormData.append('first_name', firstNameInput);
+            enrollFormData.append('last_name', lastNameInput);
+            enrollFormData.append('position', positionInput);
+
+            enrollMessageDisplay.textContent = 'Scanning fingerprint... Place your finger on the scanner.';
+            enrollMessageDisplay.className = 'status-message scanning';
+
+            // Send enrollment data to PHP API
+            fetch('api/enroll.php', {
+                method: 'POST',
+                body: enrollFormData
+            })
+            .then(function(serverResponse) { return serverResponse.json(); })
+            .then(function(enrollResult) {
+                enrollMessageDisplay.textContent = enrollResult.message;
+                if (enrollResult.success) {
+                    enrollMessageDisplay.className = 'status-message success';
+                    enrollForm.reset();
+                } else {
+                    enrollMessageDisplay.className = 'status-message error';
+                }
+            })
+            .catch(function(fetchError) {
+                enrollMessageDisplay.textContent = 'Error: ' + fetchError;
+                enrollMessageDisplay.className = 'status-message error';
+            });
+        });
+
+        // Verification button elements
+        var verifyButton = document.getElementById('verifyBtn');
+        var verifyMessageDisplay = document.getElementById('verifyMessage');
+
+        // Scan fingerprint and log attendance
+        verifyButton.addEventListener('click', function() {
+            verifyMessageDisplay.textContent = 'Scanning... Place your finger on the scanner.';
+            verifyMessageDisplay.className = 'status-message scanning';
+
+            fetch('api/verify.php', { method: 'POST' })
+            .then(function(serverResponse) { return serverResponse.json(); })
+            .then(function(verifyResult) {
+                if (verifyResult.success) {
+                    verifyMessageDisplay.textContent =
+                        'SUCCESS: ' + verifyResult.name + ' - Logged at ' + verifyResult.time;
+                    verifyMessageDisplay.className = 'status-message success';
+                } else {
+                    verifyMessageDisplay.textContent = 'FAILED: ' + verifyResult.message;
+                    verifyMessageDisplay.className = 'status-message error';
+                }
+            })
+            .catch(function(fetchError) {
+                verifyMessageDisplay.textContent = 'Error: ' + fetchError;
+                verifyMessageDisplay.className = 'status-message error';
+            });
+        });
+    </script>
+</body>
+</html>

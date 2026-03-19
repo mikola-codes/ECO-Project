@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECOZONE - Attendance Logs</title>
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="brand-header">
+        <img src="assets/images/logo.jpg" alt="ECOZONE Logo" class="brand-logo">
+        <h1>ECOZONE</h1>
+        <div class="subtitle">Attendance Logs</div>
+    </div>
+
+    <div class="main-container">
+        <div class="mb-4">
+            <a href="index.html" class="nav-link-back">&larr; Back to Main</a>
+        </div>
+
+        <div class="table-card">
+            <div class="table-header-bar">
+                <h5>Employee Attendance Records</h5>
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody id="logTableBody">
+                </tbody>
+            </table>
+            <p id="statusMessage" class="text-center mb-0">Loading...</p>
+        </div>
+
+        <div class="footer-text">ECOZONE Attendance System &copy; 2026</div>
+    </div>
+
+    <script src="libs/bootstrap.bundle.min.js"></script>
+    <script>
+        // Table and status elements
+        var attendanceTableBody = document.getElementById('logTableBody');
+        var statusMessageDisplay = document.getElementById('statusMessage');
+
+        // Fetch attendance records from PHP API
+        fetch('api/get_attendance.php')
+        .then(function(serverResponse) { return serverResponse.json(); })
+        .then(function(attendanceRecords) {
+
+            if (attendanceRecords.length === 0) {
+                statusMessageDisplay.textContent = 'No attendance records yet.';
+                return;
+            }
+
+            statusMessageDisplay.textContent = '';
+
+            for (var index = 0; index < attendanceRecords.length; index++) {
+                var tableRow = document.createElement('tr');
+
+                var employeeNameCell = document.createElement('td');
+                employeeNameCell.textContent = attendanceRecords[index].name;
+
+                var logDateCell = document.createElement('td');
+                logDateCell.textContent = attendanceRecords[index].date;
+
+                var logTimeCell = document.createElement('td');
+                logTimeCell.textContent = attendanceRecords[index].time;
+
+                tableRow.appendChild(employeeNameCell);
+                tableRow.appendChild(logDateCell);
+                tableRow.appendChild(logTimeCell);
+                attendanceTableBody.appendChild(tableRow);
+            }
+        })
+        .catch(function(fetchError) {
+            statusMessageDisplay.textContent = 'Error loading records: ' + fetchError;
+        });
+    </script>
+</body>
+</html>
