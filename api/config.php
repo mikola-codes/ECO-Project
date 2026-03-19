@@ -1,4 +1,5 @@
 <?php
+date_default_timezone_set('Asia/Manila');
 $database_host     = "localhost";
 $database_username = "root";
 $database_password = "";  // Default XAMPP password is empty
