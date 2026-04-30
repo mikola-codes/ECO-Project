@@ -20,6 +20,9 @@ constexpr int MAX_FEATURE_DATA_SIZE = (26 + 4 + 255 * 6 + 2);
 constexpr int IMAGE_BUFFER_SIZE = 500000;
 constexpr unsigned int MATCH_THRESHOLD = 21474; // Default threshold for false positive rate of 0.001%
 constexpr unsigned int CAPTURE_TIMEOUT_MS = 30000;
+constexpr unsigned int MIN_QUALITY_SCORE = 40;
+constexpr int MAX_ENROLL_ATTEMPTS = 3;
+constexpr int NUM_FINGERS = 10; // Total fingers per employee
 
 // --- SDK Structures ---
 typedef void* DPFPDD_DEV;
@@ -67,7 +70,6 @@ struct SdkContext {
 
 // --- Helper Functions ---
 
-// Convert byte array to hex string
 std::string BytesToHex(const unsigned char* data, unsigned int size) {
     std::ostringstream oss;
     oss << std::hex << std::setfill('0');
@@ -77,7 +79,6 @@ std::string BytesToHex(const unsigned char* data, unsigned int size) {
     return oss.str();
 }
 
-// Convert hex string to byte array
 std::vector<unsigned char> HexToBytes(const std::string& hex) {
     std::vector<unsigned char> bytes;
     for (size_t i = 0; i < hex.length(); i += 2) {
@@ -88,7 +89,6 @@ std::vector<unsigned char> HexToBytes(const std::string& hex) {
     return bytes;
 }
 
-// Print error and return false
 bool LogError(const std::string& message) {
     std::cout << "ERROR:" << message << std::endl;
     return false;
@@ -122,8 +122,7 @@ bool InitializeSdk() {
     return true;
 }
 
-// Scans a finger and returns the extracted feature data (FMD)
-bool ScanFingerprint(std::vector<unsigned char>& outFeatureData) {
+bool ScanFingerprint(std::vector<unsigned char>& outFeatureData, unsigned int& outQuality) {
     unsigned int deviceCount = 0;
     sdk.dpfpdd_query_devices(&deviceCount, nullptr);
     if (deviceCount == 0) return LogError("No scanner found");
@@ -137,7 +136,6 @@ bool ScanFingerprint(std::vector<unsigned char>& outFeatureData) {
         return LogError("Cannot open scanner");
     }
 
-    // Determine scanner resolution (DPI)
     unsigned int dpi = 500;
     ScannerDeviceCapabilities capabilities = {0};
     capabilities.size = sizeof(capabilities);
@@ -145,7 +143,6 @@ bool ScanFingerprint(std::vector<unsigned char>& outFeatureData) {
         dpi = capabilities.resolutions[0];
     }
 
-    // Prepare capture
     ScannerCaptureParameters captureSettings = {0};
     captureSettings.size = sizeof(captureSettings);
     captureSettings.image_format = DPFPDD_IMAGE_FORMAT_PIXELS;
@@ -159,7 +156,6 @@ bool ScanFingerprint(std::vector<unsigned char>& outFeatureData) {
     std::vector<unsigned char> imageBuffer(IMAGE_BUFFER_SIZE);
     unsigned int actualImageSize = IMAGE_BUFFER_SIZE;
 
-    // Capture the image
     int captureStatus = sdk.dpfpdd_capture(readerHandle, &captureSettings, CAPTURE_TIMEOUT_MS, &captureResult, &actualImageSize, imageBuffer.data());
     
     if (captureStatus != DPFPDD_SUCCESS || !captureResult.success) {
@@ -167,7 +163,8 @@ bool ScanFingerprint(std::vector<unsigned char>& outFeatureData) {
         return LogError("Capture failed");
     }
 
-    // Extract features (FMD) from the raw image
+    outQuality = captureResult.quality;
+
     outFeatureData.resize(MAX_FEATURE_DATA_SIZE);
     unsigned int featureDataSize = MAX_FEATURE_DATA_SIZE;
     
@@ -182,11 +179,30 @@ bool ScanFingerprint(std::vector<unsigned char>& outFeatureData) {
 
     if (extractStatus != DPFJ_SUCCESS) return LogError("Feature extraction failed");
     
-    outFeatureData.resize(featureDataSize); // Trim to actual size
+    outFeatureData.resize(featureDataSize);
     return true;
 }
 
-// Compares the scanned fingerprint against a database file
+bool ScanFingerprintWithRetry(std::vector<unsigned char>& outFeatureData, unsigned int& outQuality) {
+    for (int attempt = 1; attempt <= MAX_ENROLL_ATTEMPTS; ++attempt) {
+        if (!ScanFingerprint(outFeatureData, outQuality)) {
+            return false;
+        }
+        if (outQuality >= MIN_QUALITY_SCORE) {
+            return true;
+        }
+        if (attempt == MAX_ENROLL_ATTEMPTS) {
+            return true;
+        }
+        std::cerr << "Low quality (" << outQuality << "/100). Retrying... (" 
+                  << attempt << "/" << MAX_ENROLL_ATTEMPTS << ")" << std::endl;
+        Sleep(1000);
+    }
+    return true;
+}
+
+// Compares the scanned fingerprint against a database file with 10 fingers per employee
+// File format: "employee_id|fmd1|fmd2|...|fmd10"
 void RunVerification(const std::vector<unsigned char>& scannedFmd, const std::string& dataFilePath) {
     std::ifstream dataFile(dataFilePath);
     if (!dataFile.is_open()) {
@@ -198,34 +214,41 @@ void RunVerification(const std::vector<unsigned char>& scannedFmd, const std::st
     unsigned int bestScore = static_cast<unsigned int>(-1);
     std::string line;
 
-    // File format: "employee_id|fmd_hex_string"
     while (std::getline(dataFile, line)) {
         if (line.empty() || line[0] == '\r') continue;
 
-        size_t separatorPos = line.find('|');
-        if (separatorPos == std::string::npos) continue;
-
-        int employeeId = std::stoi(line.substr(0, separatorPos));
-        std::string storedHex = line.substr(separatorPos + 1);
-        
-        // Remove trailing \r from string if it exists from Windows CRLF lines
-        if (!storedHex.empty() && storedHex.back() == '\r') {
-             storedHex.pop_back();
+        // Remove trailing \r
+        if (!line.empty() && line.back() == '\r') {
+            line.pop_back();
         }
 
-        std::vector<unsigned char> storedFmd = HexToBytes(storedHex);
+        // Parse: employee_id|fmd1|fmd2|...|fmd10
+        std::istringstream iss(line);
+        std::string token;
 
-        unsigned int dissimilarityScore = 0;
-        int compareResult = sdk.dpfj_compare(
-            DPFJ_FORMAT_ANSI_378, const_cast<unsigned char*>(scannedFmd.data()), scannedFmd.size(), 0,
-            DPFJ_FORMAT_ANSI_378, storedFmd.data(), storedFmd.size(), 0,
-            &dissimilarityScore
-        );
+        // Get employee_id
+        if (!std::getline(iss, token, '|')) continue;
+        int employeeId = std::stoi(token);
 
-        if (compareResult == DPFJ_SUCCESS && dissimilarityScore < MATCH_THRESHOLD) {
-            if (dissimilarityScore < bestScore) {
-                bestScore = dissimilarityScore;
-                matchedEmployeeId = employeeId;
+        // Compare against each of the 10 fingers (skip "SKIP" entries)
+        for (int f = 0; f < NUM_FINGERS; ++f) {
+            if (!std::getline(iss, token, '|')) break;
+            if (token.empty() || token == "SKIP") continue;
+
+            std::vector<unsigned char> storedFmd = HexToBytes(token);
+
+            unsigned int dissimilarityScore = 0;
+            int compareResult = sdk.dpfj_compare(
+                DPFJ_FORMAT_ANSI_378, const_cast<unsigned char*>(scannedFmd.data()), scannedFmd.size(), 0,
+                DPFJ_FORMAT_ANSI_378, storedFmd.data(), storedFmd.size(), 0,
+                &dissimilarityScore
+            );
+
+            if (compareResult == DPFJ_SUCCESS && dissimilarityScore < MATCH_THRESHOLD) {
+                if (dissimilarityScore < bestScore) {
+                    bestScore = dissimilarityScore;
+                    matchedEmployeeId = employeeId;
+                }
             }
         }
     }
@@ -249,10 +272,10 @@ int main(int argc, char* argv[]) {
 
     if (!InitializeSdk()) return 1;
 
-    std::vector<unsigned char> scannedFeatures;
-    if (!ScanFingerprint(scannedFeatures)) return 1;
-
     if (mode == "enroll") {
+        std::vector<unsigned char> scannedFeatures;
+        unsigned int quality = 0;
+        if (!ScanFingerprintWithRetry(scannedFeatures, quality)) return 1;
         std::cout << BytesToHex(scannedFeatures.data(), scannedFeatures.size());
     } 
     else if (mode == "verify") {
@@ -260,6 +283,9 @@ int main(int argc, char* argv[]) {
             std::cout << "ERROR:Verify mode requires a data file path\n";
             return 1;
         }
+        std::vector<unsigned char> scannedFeatures;
+        unsigned int quality = 0;
+        if (!ScanFingerprint(scannedFeatures, quality)) return 1;
         RunVerification(scannedFeatures, argv[2]);
     } 
     else {

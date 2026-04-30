@@ -1,65 +1,134 @@
 <?php
-// verify.php — Compare fingerprint against database and log attendance
+// verify.php — Compare fingerprint against all 10 columns and log attendance
 include 'config.php';
 header('Content-Type: application/json');
 
-// Step 1: Export all fingerprints from DB to a temp file for the C++ scanner to read
-$query = "SELECT employee_id, fingerprint_data FROM fingerprints";
+// Step 1: Export all 10 fingerprints per employee to a temp file
+$query = "SELECT employee_id, nickname, right_thumb, right_index_f, right_middle, right_ring, right_pinky, left_thumb, left_index_f, left_middle, left_ring, left_pinky FROM fingerprints";
 $result = mysqli_query($connection, $query);
 
-if (mysqli_num_rows($result) == 0) {
-    echo json_encode(["success" => false, "message" => "No employees enrolled yet"]);
+if (!$result || mysqli_num_rows($result) == 0) {
+    echo json_encode(["success" => false, "message" => "No employees registered yet"]);
     exit;
 }
 
+// Write temp file: employee_id|fmd1|fmd2|...|fmd10
 $temp_file = sys_get_temp_dir() . '/ecozone_fmds.tmp';
 $file_handle = fopen($temp_file, 'w');
 
+$nicknames = []; // Cache nicknames for later
+
 while ($row = mysqli_fetch_assoc($result)) {
-    // Format: employee_id|fingerprint_data
-    fwrite($file_handle, $row['employee_id'] . '|' . $row['fingerprint_data'] . "\n");
+    $eid = $row['employee_id'];
+    $nicknames[$eid] = $row['nickname'];
+
+    $line = $eid
+        . '|' . $row['right_thumb']
+        . '|' . $row['right_index_f']
+        . '|' . $row['right_middle']
+        . '|' . $row['right_ring']
+        . '|' . $row['right_pinky']
+        . '|' . $row['left_thumb']
+        . '|' . $row['left_index_f']
+        . '|' . $row['left_middle']
+        . '|' . $row['left_ring']
+        . '|' . $row['left_pinky']
+        . "\n";
+    
+    fwrite($file_handle, $line);
 }
 fclose($file_handle);
 
-// Step 2: Call the C++ scanner in verify mode, passing the temp file
+// Step 2: Call the C++ scanner in verify mode
 $scanner_path = realpath(__DIR__ . '/../bin/scanner.exe');
-$scanner_output = trim(shell_exec('"' . $scanner_path . '" verify "' . $temp_file . '"'));
+
+if (!$scanner_path || !file_exists($scanner_path)) {
+    unlink($temp_file);
+    echo json_encode(["success" => false, "message" => "Scanner executable not found"]);
+    exit;
+}
+
+$scanner_output = trim(shell_exec('"' . $scanner_path . '" verify "' . $temp_file . '" 2>&1'));
 
 // Clean up temp file
-unlink($temp_file);
+if (file_exists($temp_file)) {
+    unlink($temp_file);
+}
 
 // Step 3: Handle the scanner output
 if (strpos($scanner_output, 'MATCH:') === 0) {
-    // Found a match
     $employee_id = (int)str_replace('MATCH:', '', $scanner_output);
-    
-    // Get employee details
-    $emp_query = "SELECT first_name, last_name FROM employees WHERE employee_id = $employee_id";
-    $emp_result = mysqli_query($connection, $emp_query);
-    $employee = mysqli_fetch_assoc($emp_result);
-    $full_name = $employee['first_name'] . " " . $employee['last_name'];
-    
-    // Log attendance
-    $today_date   = date("Y-m-d");
-    $current_time = date("H:i:s");
-    
-    $log_query = "INSERT INTO attendance_log (employee_id, log_date, log_time) 
-                  VALUES ($employee_id, '$today_date', '$current_time')";
-    mysqli_query($connection, $log_query);
-    
+    $nickname = $nicknames[$employee_id] ?? 'Unknown';
+
+    $now = date("Y-m-d H:i:s");
+    $today = date("Y-m-d");
+
+    // --- Duplicate scan prevention: block re-scan within 60 seconds ---
+    $dup_stmt = mysqli_prepare($connection, 
+        "SELECT log_time FROM attendance_log 
+         WHERE employee_id = ? AND DATE(log_time) = ?
+         ORDER BY log_time DESC LIMIT 1"
+    );
+    mysqli_stmt_bind_param($dup_stmt, "is", $employee_id, $today);
+    mysqli_stmt_execute($dup_stmt);
+    $dup_result = mysqli_stmt_get_result($dup_stmt);
+    $last_log = mysqli_fetch_assoc($dup_result);
+    mysqli_stmt_close($dup_stmt);
+
+    if ($last_log) {
+        $last_ts = strtotime($last_log['log_time']);
+        $now_ts  = strtotime($now);
+        $diff = $now_ts - $last_ts;
+
+        if ($diff < 60) {
+            $wait = 60 - $diff;
+            echo json_encode([
+                "success"  => false, 
+                "message"  => "Already scanned. Please wait {$wait} seconds.",
+                "nickname" => $nickname
+            ]);
+            exit;
+        }
+    }
+
+    // --- Determine log_type: TIME_IN or TIME_OUT ---
+    $count_stmt = mysqli_prepare($connection, 
+        "SELECT COUNT(*) AS scan_count FROM attendance_log 
+         WHERE employee_id = ? AND DATE(log_time) = ?"
+    );
+    mysqli_stmt_bind_param($count_stmt, "is", $employee_id, $today);
+    mysqli_stmt_execute($count_stmt);
+    $count_result = mysqli_stmt_get_result($count_stmt);
+    $count_row = mysqli_fetch_assoc($count_result);
+    mysqli_stmt_close($count_stmt);
+
+    $scan_count = (int)$count_row['scan_count'];
+    $log_type = ($scan_count % 2 === 0) ? 'TIME_IN' : 'TIME_OUT';
+
+    // --- Log attendance ---
+    $log_stmt = mysqli_prepare($connection, 
+        "INSERT INTO attendance_log (employee_id, nickname, log_time, log_type) 
+         VALUES (?, ?, ?, ?)"
+    );
+    mysqli_stmt_bind_param($log_stmt, "isss", $employee_id, $nickname, $now, $log_type);
+    mysqli_stmt_execute($log_stmt);
+    mysqli_stmt_close($log_stmt);
+
+    $type_label = ($log_type === 'TIME_IN') ? 'Timed In' : 'Timed Out';
+
     echo json_encode([
-        "success" => true,
-        "message" => "Attendance logged",
-        "name"    => $full_name,
-        "date"    => $today_date,
-        "time"    => $current_time
+        "success"     => true,
+        "message"     => "$type_label",
+        "employee_id" => $employee_id,
+        "nickname"    => $nickname,
+        "log_time"    => $now,
+        "log_type"    => $log_type
     ]);
 } 
 else if ($scanner_output === 'NOMATCH') {
     echo json_encode(["success" => false, "message" => "Fingerprint not recognized"]);
 } 
 else {
-    // Some other error from the scanner
     echo json_encode(["success" => false, "message" => "Scanner status: " . $scanner_output]);
 }
 
