@@ -1,2 +1,2 @@
 # ECO-Project
-A web-based fingerprint attendance system that registers members by ID and nickname, enrolls up to 10 fingerprints per person, and logs daily time-in and time-out using a DigitalPersona biometric reader.
+ECO-Project is a biometric attendance management system built for barangay and organizational use. It captures and matches fingerprints via a DigitalPersona U.are.U USB reader using a custom C++ bridge (ANSI 378 / DPFJ SDK). Members are registered with an ID number and nickname, with up to 10 fingers stored in a flat MySQL table. Each scan automatically records time-in or time-out. Built with plain PHP, MySQL, Bootstrap 5, and XAMPP.
