@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Auto-Updating Dashboard</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+            background: #fdfdfd;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+            margin-top: 0;
+        }
+
+        p.status {
+            color: #555;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Live Attendance Dashboard</h1>
+        <p class="status" id="statusText">Waiting for data...</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Log ID</th>
+                    <th>Employee Name</th>
+                    <th>Time</th>
+                    <th>Type</th>
+                </tr>
+            </thead>
+            <tbody id="attendanceData">
+                <!-- Data will be injected here automatically by Javascript -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Secret Key representing this dashboard's permission
+        const DASHBOARD_SECRET_KEY = "test-key-12345";
+
+        // This function automatically fetches the data without needing buttons
+        async function fetchLiveAttendance() {
+            const statusText = document.getElementById('statusText');
+            statusText.innerText = "Fetching live data from API...";
+
+            try {
+                // The receiver makes the HTTP GET Request
+                let response = await fetch("http://localhost/ECO-Project-Razel/api/v1/attendance.php", {
+                    method: "GET",
+                    headers: {
+                        "X-API-Key": DASHBOARD_SECRET_KEY
+                    }
+                });
+
+                // Unpack the JSON data sent back from the API
+                let result = await response.json();
+
+                if (result.success) {
+                    statusText.innerText = "Auto-updated at " + new Date().toLocaleTimeString();
+
+                    // Clear the table body
+                    const tbody = document.getElementById('attendanceData');
+                    tbody.innerHTML = "";
+
+                    // Loop over the data and build HTML rows
+                    for (let log of result.data) {
+                        let tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${log.log_id}</td>
+                            <td>${log.nickname}</td>
+                            <td>${log.log_time}</td>
+                            <td style="color: ${log.log_type === 'TIME_IN' ? 'green' : 'red'};">${log.log_type}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    }
+
+                    if (result.data.length === 0) {
+                        tbody.innerHTML = "<tr><td colspan='4'>No attendance data today.</td></tr>";
+                    }
+                } else {
+                    statusText.innerText = "Error: " + result.message;
+                }
+            } catch (error) {
+                statusText.innerText = "Failed to reach the API server.";
+            }
+        }
+
+        // As soon as this page loads, run the function automatically!
+        window.onload = function () {
+            fetchLiveAttendance();
+
+            // Re-fetch automatically every 10 seconds
+            setInterval(fetchLiveAttendance, 10000);
+        };
+    </script>
+</body>
+
+</html>

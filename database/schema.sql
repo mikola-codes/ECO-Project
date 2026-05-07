@@ -41,3 +41,15 @@ CREATE TABLE IF NOT EXISTS attendance_log (
     FOREIGN KEY (employee_id) REFERENCES fingerprints(employee_id),
     INDEX idx_employee_date (employee_id, log_time)
 );
+
+-- ============================================================
+-- Table 3: api_keys
+-- Manages valid API keys for external applications
+-- ============================================================
+CREATE TABLE IF NOT EXISTS api_keys (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    api_key VARCHAR(64) UNIQUE NOT NULL,
+    app_name VARCHAR(100) NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
