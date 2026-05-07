@@ -1,25 +1,47 @@
 <?php
-// get_attendance.php — Get all attendance records
+// get_attendance.php — Get attendance records (id, nickname, time)
 include 'config.php';
 header('Content-Type: application/json');
 
-$query = "SELECT employees.first_name, employees.last_name, 
-                 attendance_log.log_date, attendance_log.log_time 
-          FROM attendance_log 
-          JOIN employees ON attendance_log.employee_id = employees.employee_id 
-          ORDER BY attendance_log.log_date DESC, attendance_log.log_time DESC";
+// Optional date filter: ?date=YYYY-MM-DD
+$date_filter = isset($_GET['date']) ? trim($_GET['date']) : '';
 
-$result = mysqli_query($connection, $query);
+if (!empty($date_filter)) {
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date_filter)) {
+        echo json_encode(["success" => false, "message" => "Invalid date format. Use YYYY-MM-DD"]);
+        exit;
+    }
+
+    $stmt = mysqli_prepare($connection, 
+        "SELECT log_id, employee_id, nickname, log_time, log_type 
+         FROM attendance_log 
+         WHERE DATE(log_time) = ?
+         ORDER BY log_time DESC"
+    );
+    mysqli_stmt_bind_param($stmt, "s", $date_filter);
+} else {
+    $stmt = mysqli_prepare($connection, 
+        "SELECT log_id, employee_id, nickname, log_time, log_type 
+         FROM attendance_log 
+         ORDER BY log_time DESC"
+    );
+}
+
+mysqli_stmt_execute($stmt);
+$result = mysqli_stmt_get_result($stmt);
 
 $records = [];
 while ($row = mysqli_fetch_assoc($result)) {
     $records[] = [
-        "name" => $row['first_name'] . " " . $row['last_name'],
-        "date" => $row['log_date'],
-        "time" => $row['log_time']
+        "log_id"      => $row['log_id'],
+        "employee_id" => $row['employee_id'],
+        "nickname"    => $row['nickname'],
+        "log_time"    => $row['log_time'],
+        "log_type"    => $row['log_type']
     ];
 }
 
+mysqli_stmt_close($stmt);
 echo json_encode($records);
 mysqli_close($connection);
 ?>

@@ -1,39 +1,55 @@
 -- ============================================================
 -- ECOZONE Fingerprint Attendance System
--- Database Schema
+-- Database Schema — 10-Finger Flat Table Design
 -- ============================================================
 
--- Create the database
 CREATE DATABASE IF NOT EXISTS ecozone_attendance;
 USE ecozone_attendance;
 
 -- ============================================================
--- Table 1: employees
--- Stores basic information about each employee
+-- Table 1: fingerprints
+-- Flat table storing employee info + all 10 fingerprints
+-- All finger columns are NOT NULL
 -- ============================================================
-CREATE TABLE employees (
+CREATE TABLE IF NOT EXISTS fingerprints (
     employee_id     INT AUTO_INCREMENT PRIMARY KEY,
-    first_name      VARCHAR(100) NOT NULL,
-    last_name       VARCHAR(100) NOT NULL,
-    position        VARCHAR(100),
+    nickname        VARCHAR(100) NOT NULL,
+    right_thumb     TEXT NOT NULL,
+    right_index_f   TEXT NOT NULL,
+    right_middle    TEXT NOT NULL,
+    right_ring      TEXT NOT NULL,
+    right_pinky     TEXT NOT NULL,
+    left_thumb      TEXT NOT NULL,
+    left_index_f    TEXT NOT NULL,
+    left_middle     TEXT NOT NULL,
+    left_ring       TEXT NOT NULL,
+    left_pinky      TEXT NOT NULL,
     date_registered DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+-- ============================================================
+-- Table 2: attendance_log
+-- Stores employee_id, nickname, and full timestamp
+-- ============================================================
+CREATE TABLE IF NOT EXISTS attendance_log (
+    log_id        INT AUTO_INCREMENT PRIMARY KEY,
+    employee_id   INT NOT NULL,
+    nickname      VARCHAR(100) NOT NULL,
+    log_time      DATETIME NOT NULL,
+    log_type      ENUM('TIME_IN', 'TIME_OUT') NOT NULL DEFAULT 'TIME_IN',
 
-CREATE TABLE fingerprints (
-    fingerprint_id   INT AUTO_INCREMENT PRIMARY KEY,
-    employee_id      INT NOT NULL,
-    fingerprint_data TEXT NOT NULL,
-    date_enrolled    DATETIME DEFAULT CURRENT_TIMESTAMP,
-
-    FOREIGN KEY (employee_id) REFERENCES employees(employee_id)
+    FOREIGN KEY (employee_id) REFERENCES fingerprints(employee_id),
+    INDEX idx_employee_date (employee_id, log_time)
 );
 
-CREATE TABLE attendance_log (
-    log_id       INT AUTO_INCREMENT PRIMARY KEY,
-    employee_id  INT NOT NULL,
-    log_date     DATE NOT NULL,
-    log_time     TIME NOT NULL,
-
-    FOREIGN KEY (employee_id) REFERENCES employees(employee_id)
+-- ============================================================
+-- Table 3: api_keys
+-- Manages valid API keys for external applications
+-- ============================================================
+CREATE TABLE IF NOT EXISTS api_keys (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    api_key VARCHAR(64) UNIQUE NOT NULL,
+    app_name VARCHAR(100) NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );

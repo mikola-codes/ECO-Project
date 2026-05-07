@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ECOZONE - Attendance Logs</title>
+    <meta name="description" content="Employee attendance logs for ECOZONE Fingerprint Attendance System.">
     <link rel="stylesheet" href="assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
+
 <body>
 
     <!-- Header -->
@@ -14,29 +17,55 @@
         <img src="assets/images/logo.jpg" alt="ECOZONE Logo" class="brand-logo">
         <h1>ECOZONE</h1>
         <div class="subtitle">Attendance Logs</div>
+        <div id="liveClock" class="live-clock"></div>
     </div>
 
-    <div class="main-container">
+    <div class="main-container main-container-wide">
         <div class="mb-4">
             <a href="index.html" class="nav-link-back">&larr; Back to Main</a>
         </div>
 
+        <!-- Filters -->
+        <div class="filter-bar">
+            <div class="filter-group">
+                <label for="dateFilter" class="filter-label">Filter by Date</label>
+                <input type="date" id="dateFilter" class="form-control form-control-sm filter-input">
+            </div>
+            <div class="filter-group">
+                <label for="searchFilter" class="filter-label">Search Nickname</label>
+                <input type="text" id="searchFilter" class="form-control form-control-sm filter-input"
+                    placeholder="Type a nickname...">
+            </div>
+            <div class="filter-group filter-actions">
+                <button id="clearFilters" class="btn btn-clear">Clear Filters</button>
+            </div>
+        </div>
+
+        <!-- Attendance Table -->
         <div class="table-card">
             <div class="table-header-bar">
-                <h5>Employee Attendance Records</h5>
+                <h5>
+                    Attendance Records
+                    <span id="recordCount" class="record-count-badge"></span>
+                </h5>
             </div>
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Date</th>
-                        <th>Time</th>
-                    </tr>
-                </thead>
-                <tbody id="logTableBody">
-                </tbody>
-            </table>
-            <p id="statusMessage" class="text-center mb-0">Loading...</p>
+            <div class="table-responsive">
+                <table class="table" id="attendanceTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nickname</th>
+                            <th>Date &amp; Time</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logTableBody">
+                    </tbody>
+                </table>
+            </div>
+            <p id="statusMessage" class="text-center mb-0">
+                <span class="spinner"></span> Loading records...
+            </p>
         </div>
 
         <div class="footer-text">ECOZONE Attendance System &copy; 2026</div>
@@ -44,43 +73,119 @@
 
     <script src="libs/bootstrap.bundle.min.js"></script>
     <script>
-        // Table and status elements
-        var attendanceTableBody = document.getElementById('logTableBody');
-        var statusMessageDisplay = document.getElementById('statusMessage');
+        // Timer
+        var clockDisplay = document.getElementById('liveClock');
+        function updateClock() {
+            var now = new Date();
+            var dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            var timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            clockDisplay.textContent = dateStr + '  •  ' + timeStr;
+        }
+        updateClock();
+        setInterval(updateClock, 1000);
 
-        // Fetch attendance records from PHP API
-        fetch('api/get_attendance.php')
-        .then(function(serverResponse) { return serverResponse.json(); })
-        .then(function(attendanceRecords) {
+        // Elements
+        var tableBody = document.getElementById('logTableBody');
+        var statusMsg = document.getElementById('statusMessage');
+        var countBadge = document.getElementById('recordCount');
+        var dateFilter = document.getElementById('dateFilter');
+        var searchFilter = document.getElementById('searchFilter');
+        var clearBtn = document.getElementById('clearFilters');
 
-            if (attendanceRecords.length === 0) {
-                statusMessageDisplay.textContent = 'No attendance records yet.';
+        var allRecords = [];
+
+        // Fetch attendance
+        function loadAttendance(date) {
+            tableBody.innerHTML = '';
+            statusMsg.innerHTML = '<span class="spinner"></span> Loading records...';
+            statusMsg.style.display = 'block';
+
+            var url = 'api/get_attendance.php';
+            if (date) url += '?date=' + date;
+
+            fetch(url)
+                .then(function (res) { return res.json(); })
+                .then(function (records) {
+                    allRecords = records;
+                    renderRecords(allRecords);
+                })
+                .catch(function (err) {
+                    statusMsg.textContent = 'Error loading records: ' + err;
+                    statusMsg.style.display = 'block';
+                    countBadge.textContent = '';
+                });
+        }
+
+        // Render table
+        function renderRecords(records) {
+            tableBody.innerHTML = '';
+
+            if (records.length === 0) {
+                statusMsg.textContent = 'No attendance records found.';
+                statusMsg.style.display = 'block';
+                countBadge.textContent = '0';
                 return;
             }
 
-            statusMessageDisplay.textContent = '';
+            statusMsg.style.display = 'none';
+            countBadge.textContent = records.length;
 
-            for (var index = 0; index < attendanceRecords.length; index++) {
-                var tableRow = document.createElement('tr');
+            for (var i = 0; i < records.length; i++) {
+                var r = records[i];
+                var row = document.createElement('tr');
 
-                var employeeNameCell = document.createElement('td');
-                employeeNameCell.textContent = attendanceRecords[index].name;
+                var idCell = document.createElement('td');
+                idCell.textContent = r.employee_id;
+                idCell.className = 'cell-id';
 
-                var logDateCell = document.createElement('td');
-                logDateCell.textContent = attendanceRecords[index].date;
+                var nickCell = document.createElement('td');
+                nickCell.textContent = r.nickname;
+                nickCell.className = 'cell-name';
 
-                var logTimeCell = document.createElement('td');
-                logTimeCell.textContent = attendanceRecords[index].time;
+                var timeCell = document.createElement('td');
+                timeCell.textContent = r.log_time;
 
-                tableRow.appendChild(employeeNameCell);
-                tableRow.appendChild(logDateCell);
-                tableRow.appendChild(logTimeCell);
-                attendanceTableBody.appendChild(tableRow);
+                var statusCell = document.createElement('td');
+                var logType = r.log_type || 'TIME_IN';
+                var badge = document.createElement('span');
+                badge.className = 'log-badge log-badge-' + logType.toLowerCase();
+                badge.textContent = logType === 'TIME_IN' ? 'TIME IN' : 'TIME OUT';
+                statusCell.appendChild(badge);
+
+                row.appendChild(idCell);
+                row.appendChild(nickCell);
+                row.appendChild(timeCell);
+                row.appendChild(statusCell);
+                tableBody.appendChild(row);
             }
-        })
-        .catch(function(fetchError) {
-            statusMessageDisplay.textContent = 'Error loading records: ' + fetchError;
+        }
+
+        // Search filter
+        searchFilter.addEventListener('input', function () {
+            var term = this.value.toLowerCase().trim();
+            if (!term) { renderRecords(allRecords); return; }
+            var filtered = allRecords.filter(function (r) {
+                return r.nickname.toLowerCase().indexOf(term) !== -1;
+            });
+            renderRecords(filtered);
         });
+
+        // Date filter
+        dateFilter.addEventListener('change', function () {
+            searchFilter.value = '';
+            loadAttendance(this.value);
+        });
+
+        // Clear
+        clearBtn.addEventListener('click', function () {
+            dateFilter.value = '';
+            searchFilter.value = '';
+            loadAttendance('');
+        });
+
+        // Initial load
+        loadAttendance('');
     </script>
 </body>
+
 </html>
