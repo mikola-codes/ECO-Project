@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-ECOZONE is a comprehensive, hardware-integrated time and attendance system that leverages 10-finger biometric data for highly reliable employee tracking limit enrollment.
+ECOZONE (ECO-Project) is a biometric attendance management system built for barangay and organizational use. It leverages 10-finger biometric data for highly reliable employee tracking, capturing and matching fingerprints via a DigitalPersona U.are.U USB reader using a custom C++ bridge (ANSI 378 / DPFJ SDK). Members are registered with an ID number and nickname, with up to 10 fingers stored in a flat MySQL table. Each scan automatically records time-in or time-out. Built with plain PHP, MySQL, Bootstrap 5, and XAMPP.
 
 ## Key Features
 
