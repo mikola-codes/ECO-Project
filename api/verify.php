@@ -48,7 +48,7 @@ if (!$scanner_path || !file_exists($scanner_path)) {
     exit;
 }
 
-$scanner_output = trim(shell_exec('"' . $scanner_path . '" verify "' . $temp_file . '" 2>&1'));
+$scanner_output = trim(shell_exec('"' . $scanner_path . '" verify "' . $temp_file . '"'));
 
 // Clean up temp file
 if (file_exists($temp_file)) {

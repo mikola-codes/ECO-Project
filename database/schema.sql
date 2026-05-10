@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS attendance_log (
     log_time      DATETIME NOT NULL,
     log_type      ENUM('TIME_IN', 'TIME_OUT') NOT NULL DEFAULT 'TIME_IN',
 
-    FOREIGN KEY (employee_id) REFERENCES fingerprints(employee_id),
+    FOREIGN KEY (employee_id) REFERENCES fingerprints(employee_id) ON DELETE CASCADE,
     INDEX idx_employee_date (employee_id, log_time)
 );
 

@@ -29,8 +29,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": ".",
-      "program": "build/Debug/outDebug",
+      "cwd": "c:/Users/Administrator/Desktop/xammp/htdocs/ECO-Project-Razel/src",
+      "program": "c:/Users/Administrator/Desktop/xammp/htdocs/ECO-Project-Razel/src/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [

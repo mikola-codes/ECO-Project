@@ -69,7 +69,7 @@ if ($finger_index >= 0 && $finger_index <= 9) {
             exit;
         }
 
-        $fingerprint_data = trim(shell_exec('"' . $scanner_path . '" enroll 2>&1'));
+        $fingerprint_data = trim(shell_exec('"' . $scanner_path . '" enroll'));
 
         if (empty($fingerprint_data) || strpos($fingerprint_data, 'ERROR') === 0) {
             echo json_encode([
@@ -77,6 +77,71 @@ if ($finger_index >= 0 && $finger_index <= 9) {
                 "message" => "Scanner error on " . $finger_names[$finger_index] . ": " . $fingerprint_data
             ]);
             exit;
+        }
+
+        // --- Duplicate Check Against Existing Fingerprints & Current Session ---
+        $temp_file = sys_get_temp_dir() . '/ecozone_enroll_check_' . uniqid() . '.tmp';
+        $file_handle = fopen($temp_file, 'w');
+        $has_data_to_check = false;
+        $nicknames = [];
+
+        $query = "SELECT employee_id, nickname, right_thumb, right_index_f, right_middle, right_ring, right_pinky, left_thumb, left_index_f, left_middle, left_ring, left_pinky FROM fingerprints";
+        $result = mysqli_query($connection, $query);
+
+        if ($result && mysqli_num_rows($result) > 0) {
+            while ($row = mysqli_fetch_assoc($result)) {
+                $eid = $row['employee_id'];
+                $nicknames[$eid] = $row['nickname'];
+                $line = $eid . '|' . $row['right_thumb'] . '|' . $row['right_index_f'] . '|' . $row['right_middle'] . '|' . $row['right_ring'] . '|' . $row['right_pinky'] . '|' . $row['left_thumb'] . '|' . $row['left_index_f'] . '|' . $row['left_middle'] . '|' . $row['left_ring'] . '|' . $row['left_pinky'] . "\n";
+                fwrite($file_handle, $line);
+                $has_data_to_check = true;
+            }
+        }
+
+        // Add fingers from the current ongoing 10-finger session
+        $session_line_parts = array_fill(0, 11, '');
+        $session_line_parts[0] = 999999; // Mock ID for current session
+        $has_session_fingers = false;
+        for ($i = 0; $i < 10; $i++) {
+            $sess_finger = $_POST['session_finger_' . $i] ?? '';
+            if (!empty($sess_finger) && $sess_finger !== 'SKIP') {
+                $session_line_parts[$i + 1] = trim($sess_finger);
+                $has_session_fingers = true;
+                $has_data_to_check = true;
+            }
+        }
+        
+        if ($has_session_fingers) {
+            $nicknames[999999] = 'YOUR PREVIOUSLY SCANNED FINGER';
+            $line = implode('|', $session_line_parts) . "\n";
+            fwrite($file_handle, $line);
+        }
+        
+        fclose($file_handle);
+
+        if ($has_data_to_check) {
+            $check_output = trim(shell_exec('"' . $scanner_path . '" check "' . $fingerprint_data . '" "' . $temp_file . '"'));
+            if (file_exists($temp_file)) unlink($temp_file);
+            
+            if (strpos($check_output, 'MATCH:') === 0) {
+                $matched_id = (int)str_replace('MATCH:', '', $check_output);
+                
+                if ($matched_id === 999999) {
+                    echo json_encode([
+                        "success" => false, 
+                        "message" => "Security Alert: You already scanned this exact fingerprint in the current session!"
+                    ]);
+                } else {
+                    $dup_nickname = $nicknames[$matched_id] ?? 'Unknown';
+                    echo json_encode([
+                        "success" => false, 
+                        "message" => "Security Alert: This fingerprint is already registered to " . $dup_nickname . "!"
+                    ]);
+                }
+                exit;
+            }
+        } else {
+            if (file_exists($temp_file)) unlink($temp_file);
         }
     }
 

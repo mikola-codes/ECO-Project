@@ -7,6 +7,12 @@
     <title>ECOZONE - Fingerprint Attendance System</title>
     <meta name="description"
         content="ECOZONE Fingerprint Attendance System — 10-finger biometric enrollment and attendance verification.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
@@ -230,8 +236,11 @@
                     </div>
                     <p id="progressText" class="progress-text">0 / 10 fingers scanned</p>
 
-                    <!-- Scan & Skip Buttons -->
+                    <!-- Scan, Skip & Back Buttons -->
                     <div class="scan-buttons-row">
+                        <button id="backFingerBtn" class="btn btn-skip" title="Go back to the previous finger" disabled>
+                            Back
+                        </button>
                         <button id="scanFingerBtn" class="btn btn-scan flex-grow-1">
                             <span class="btn-text">Scan Right Thumb</span>
                             <span class="btn-spinner" style="display:none;">
@@ -349,6 +358,7 @@
         var currentFingerIndex = 0;
         var collectedFingers = []; // Array of 10 FMD hex strings or 'SKIP'
         var skipFingerBtn = document.getElementById('skipFingerBtn');
+        var backFingerBtn = document.getElementById('backFingerBtn');
 
         startEnrollBtn.addEventListener('click', function () {
             var nick = nicknameInput.value.trim();
@@ -362,6 +372,7 @@
             currentFingerIndex = 0;
             collectedFingers = [];
             skippedCount = 0;
+            backFingerBtn.disabled = true;
 
             // Reset all finger slots
             for (var i = 0; i < 10; i++) {
@@ -403,6 +414,9 @@
             if (currentFingerIndex < 10) {
                 txt.textContent = 'Scan ' + fingerNames[currentFingerIndex];
             }
+            if (backFingerBtn) {
+                backFingerBtn.disabled = (currentFingerIndex === 0);
+            }
         }
 
         scanFingerBtn.addEventListener('click', function () {
@@ -415,6 +429,11 @@
             var formData = new FormData();
             formData.append('nickname', currentNickname);
             formData.append('finger_index', currentFingerIndex);
+
+            // Append currently collected fingers to protect against duplicates intra-session
+            for (var i = 0; i < collectedFingers.length; i++) {
+                formData.append('session_finger_' + i, collectedFingers[i]);
+            }
 
             fetch('api/enroll.php', { method: 'POST', body: formData })
                 .then(function (res) { return res.json(); })
@@ -501,6 +520,41 @@
                     enrollMessage.innerHTML = '<span class="status-icon">❌</span> Error: ' + err;
                     enrollMessage.className = 'status-message error';
                 });
+        });
+
+        // =============================================
+        // Back Finger
+        // =============================================
+        backFingerBtn.addEventListener('click', function () {
+            if (currentFingerIndex === 0 || currentFingerIndex >= 10) return;
+
+            // Remove the 'active' state from the current slot
+            var currentSlot = document.getElementById('slot-' + currentFingerIndex);
+            if (currentSlot) currentSlot.classList.remove('active');
+
+            // Find the previous record
+            if (collectedFingers.length > 0) {
+                var popped = collectedFingers.pop();
+                if (popped === 'SKIP') {
+                    skippedCount--;
+                }
+            }
+
+            // Decrement the index
+            currentFingerIndex--;
+
+            // Make the previous slot active and remove done/skipped state
+            var prevSlot = document.getElementById('slot-' + currentFingerIndex);
+            if (prevSlot) {
+                prevSlot.classList.remove('done', 'skipped');
+                prevSlot.classList.add('active');
+            }
+
+            updateProgress();
+            updateScanButtonText();
+
+            enrollMessage.innerHTML = '<span class="status-icon">⏪</span> Went back to <strong>' + fingerNames[currentFingerIndex] + '</strong>';
+            enrollMessage.className = 'status-message';
         });
 
         // =============================================
