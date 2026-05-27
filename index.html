@@ -15,11 +15,77 @@
 
     <link rel="stylesheet" href="assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        /* ── Holiday Banner ────────────────────────── */
+        .holiday-banner {
+            display: none;
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+            color: #fff;
+            text-align: center;
+            padding: 10px 20px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            box-shadow: 0 2px 12px rgba(255, 107, 53, 0.35);
+            animation: bannerSlideIn 0.4s ease;
+        }
+
+        .holiday-banner.special {
+            background: linear-gradient(135deg, #6a3de8 0%, #4f46e5 100%);
+            box-shadow: 0 2px 12px rgba(79, 70, 229, 0.35);
+        }
+
+        .holiday-banner.company {
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            box-shadow: 0 2px 12px rgba(14, 165, 233, 0.35);
+        }
+
+        @keyframes bannerSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .holiday-banner-icon {
+            font-size: 1.1em;
+            margin-right: 6px;
+        }
+
+        .holiday-verify-notice {
+            margin-top: 8px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            background: rgba(255, 107, 53, 0.12);
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            font-size: 0.82rem;
+            color: #ff6b35;
+            font-weight: 600;
+        }
+
+        .holiday-verify-notice.special {
+            color: #6a3de8;
+            background: rgba(106, 61, 232, 0.1);
+            border-color: rgba(106, 61, 232, 0.25);
+        }
+    </style>
 </head>
 
 <body>
 
     <!-- Header with Timer -->
+    <!-- Holiday Banner -->
+    <div id="holidayBanner" class="holiday-banner">
+        <span class="holiday-banner-icon">🏖️</span>
+        <span id="holidayBannerText"></span>
+    </div>
+
     <div class="brand-header">
         <img src="assets/images/logo.jpg" alt="ECOZONE Logo" class="brand-logo">
         <h1>ECOZONE</h1>
@@ -314,6 +380,28 @@
 
     <script src="libs/bootstrap.bundle.min.js"></script>
     <script>
+        // =============================================
+        // Holiday Banner
+        // =============================================
+        var holidayBanner = document.getElementById('holidayBanner');
+        var holidayBannerText = document.getElementById('holidayBannerText');
+        var todayHoliday = null;
+
+        fetch('api/holidays.php?check_today=1')
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+                if (data.is_holiday) {
+                    todayHoliday = data;
+                    holidayBannerText.textContent = 'TODAY IS A ' + data.holiday_type.replace(/_/g, ' ') + ' HOLIDAY — ' + data.holiday_name + '. Attendance scans will be tagged accordingly.';
+                    holidayBanner.style.display = 'block';
+                    if (data.holiday_type === 'SPECIAL_NON_WORKING' || data.holiday_type === 'SPECIAL_WORKING') {
+                        holidayBanner.classList.add('special');
+                    } else if (data.holiday_type === 'COMPANY') {
+                        holidayBanner.classList.add('company');
+                    }
+                }
+            })
+            .catch(function () { /* banner stays hidden on error */ });
         // =============================================
         // Timer / Live Clock
         // =============================================
@@ -616,11 +704,17 @@
                     if (data.success) {
                         var typeLabel = data.log_type === 'TIME_IN' ? 'TIMED IN' : 'TIMED OUT';
                         var badgeClass = 'log-badge log-badge-' + data.log_type.toLowerCase();
+                        var holidayNotice = '';
+                        if (data.is_holiday && data.holiday_name) {
+                            var noticeClass = (data.holiday_type === 'SPECIAL_NON_WORKING' || data.holiday_type === 'SPECIAL_WORKING') ? 'holiday-verify-notice special' : 'holiday-verify-notice';
+                            holidayNotice = '<div class="' + noticeClass + '">🏖️ ' + data.holiday_name + ' — ' + data.holiday_type.replace(/_/g, ' ') + '</div>';
+                        }
                         verifyMessage.innerHTML =
                             '<span class="status-icon">✅</span> ' +
                             '<strong>ID ' + data.employee_id + '</strong> — ' + data.nickname +
                             ' <span class="' + badgeClass + '">' + typeLabel + '</span>' +
-                            '<br><small class="text-muted">' + data.log_time + '</small>';
+                            '<br><small class="text-muted">' + data.log_time + '</small>' +
+                            holidayNotice;
                         verifyMessage.className = 'status-message success';
                     } else {
                         verifyMessage.innerHTML = '<span class="status-icon">❌</span> ' + data.message;

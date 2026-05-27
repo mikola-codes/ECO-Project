@@ -7,7 +7,6 @@
 #include <vector>
 #include <windows.h>
 
-
 // --- Constants ---
 constexpr int MAX_STRING_LENGTH = 128;
 constexpr int MAX_DEVICE_NAME_LENGTH = 1024;
@@ -244,6 +243,10 @@ bool ScanFingerprint(std::vector<unsigned char> &outFeatureData,
   outFeatureData.resize(MAX_FEATURE_DATA_SIZE);
   unsigned int featureDataSize = MAX_FEATURE_DATA_SIZE;
 
+  // --- HASHING EQUIVALENT (FEATURE EXTRACTION) ---
+  // This is where the mathematical "hashing" of the physical fingerprint
+  // occurs! It converts the raw fingerprint image into a standardized ANSI 378
+  // Minutiae Template.
   int extractStatus = sdk.dpfj_create_fmd_from_raw(
       imageBuffer.data(), actualImageSize, captureResult.image_info.width,
       captureResult.image_info.height, captureResult.image_info.resolution, 0,
@@ -360,6 +363,10 @@ int main(int argc, char *argv[]) {
     unsigned int quality = 0;
     if (!ScanFingerprintWithRetry(scannedFeatures, quality))
       return 1;
+
+    // --- TEXT CONVERSION ---
+    // Converts the binary template "hash" into a readable hex string for the
+    // database!
     std::cout << BytesToHex(scannedFeatures.data(), scannedFeatures.size());
   } else if (mode == "verify") {
     if (argc < 3) {

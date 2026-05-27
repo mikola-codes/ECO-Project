@@ -1,6 +1,7 @@
 <?php
 // verify.php — Compare fingerprint against all 10 columns and log attendance
 include 'config.php';
+require_once 'helpers/holiday.php';
 header('Content-Type: application/json');
 
 // Step 1: Export all 10 fingerprints per employee to a temp file
@@ -105,24 +106,32 @@ if (strpos($scanner_output, 'MATCH:') === 0) {
     $scan_count = (int)$count_row['scan_count'];
     $log_type = ($scan_count % 2 === 0) ? 'TIME_IN' : 'TIME_OUT';
 
+    // --- Check if today is a holiday ---
+    $holiday      = check_holiday($connection, $today);
+    $holiday_flag = $holiday ? $holiday['holiday_type'] : null;
+    $holiday_name = $holiday ? $holiday['holiday_name'] : null;
+
     // --- Log attendance ---
     $log_stmt = mysqli_prepare($connection, 
-        "INSERT INTO attendance_log (employee_id, nickname, log_time, log_type) 
-         VALUES (?, ?, ?, ?)"
+        "INSERT INTO attendance_log (employee_id, nickname, log_time, log_type, holiday_flag, holiday_name) 
+         VALUES (?, ?, ?, ?, ?, ?)"
     );
-    mysqli_stmt_bind_param($log_stmt, "isss", $employee_id, $nickname, $now, $log_type);
+    mysqli_stmt_bind_param($log_stmt, "isssss", $employee_id, $nickname, $now, $log_type, $holiday_flag, $holiday_name);
     mysqli_stmt_execute($log_stmt);
     mysqli_stmt_close($log_stmt);
 
     $type_label = ($log_type === 'TIME_IN') ? 'Timed In' : 'Timed Out';
 
     echo json_encode([
-        "success"     => true,
-        "message"     => "$type_label",
-        "employee_id" => $employee_id,
-        "nickname"    => $nickname,
-        "log_time"    => $now,
-        "log_type"    => $log_type
+        "success"      => true,
+        "message"      => "$type_label",
+        "employee_id"  => $employee_id,
+        "nickname"     => $nickname,
+        "log_time"     => $now,
+        "log_type"     => $log_type,
+        "is_holiday"   => $holiday !== null,
+        "holiday_name" => $holiday_name,
+        "holiday_type" => $holiday_flag
     ]);
 } 
 else if ($scanner_output === 'NOMATCH') {

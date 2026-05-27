@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECOZONE - Admin Panel</title>
+    <meta name="description" content="ECOZONE Admin Panel — Holiday Management & Field Duty Management.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        /* ── Login Gate ─────────────────────────── */
+        .login-gate {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 78vh
+        }
+
+        .login-card {
+            background: #fff;
+            border-radius: 28px;
+            box-shadow: 0 12px 50px rgba(30, 60, 40, .12);
+            padding: 56px 48px 44px;
+            max-width: 440px;
+            width: 100%;
+            text-align: center;
+            animation: fadeUp .45s ease
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(22px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .login-icon {
+            font-size: 52px;
+            margin-bottom: 8px
+        }
+
+        .login-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #1a3c2a;
+            margin-bottom: 4px
+        }
+
+        .login-subtitle {
+            font-size: 13px;
+            color: #a0bba6;
+            font-weight: 600;
+            margin-bottom: 30px
+        }
+
+        .login-input {
+            border: 2px solid #e1efe5;
+            border-radius: 14px;
+            padding: 15px 20px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #1a3c2a;
+            width: 100%;
+            outline: none;
+            transition: border-color .25s;
+            font-family: 'Outfit', sans-serif
+        }
+
+        .login-input:focus {
+            border-color: #2bcf74;
+            box-shadow: 0 0 0 3px rgba(43, 207, 116, .1)
+        }
+
+        .login-btn {
+            margin-top: 18px;
+            background: linear-gradient(135deg, #2bcf74, #1db954);
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 700;
+            padding: 16px 50px;
+            width: 100%;
+            cursor: pointer;
+            transition: all .3s;
+            font-family: 'Outfit', sans-serif;
+            letter-spacing: .02em
+        }
+
+        .login-btn:hover {
+            background: #25bb67;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 24px rgba(43, 207, 116, .35)
+        }
+
+        .login-btn:disabled {
+            background: #e1efe5;
+            color: #a0bba6;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none
+        }
+
+        .login-error {
+            color: #d90429;
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 14px;
+            min-height: 20px
+        }
+
+        /* ── Admin Panel ─────────────────────────── */
+        .admin-panel {
+            display: none
+        }
+
+        .brand-header {
+            position: relative
+        }
+
+        .btn-logout {
+            background: none;
+            border: 2px solid rgba(255, 255, 255, .4);
+            color: rgba(255, 255, 255, .9);
+            border-radius: 10px;
+            padding: 6px 18px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .2s;
+            font-family: 'Outfit', sans-serif;
+            position: absolute;
+            top: 20px;
+            right: 20px
+        }
+
+        .btn-logout:hover {
+            background: rgba(255, 255, 255, .15);
+            border-color: #fff
+        }
+
+        /* ── Today Banner ───────────────────────── */
+        .today-banner {
+            display: none;
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            color: #fff;
+            border-radius: 16px;
+            padding: 14px 24px;
+            margin-bottom: 18px;
+            font-weight: 600;
+            font-size: .9rem;
+            box-shadow: 0 4px 16px rgba(255, 107, 53, .22);
+            animation: fadeUp .4s ease
+        }
+
+        .today-banner.special {
+            background: linear-gradient(135deg, #6a3de8, #4f46e5);
+            box-shadow: 0 4px 16px rgba(106, 61, 232, .22)
+        }
+
+        /* ── Tabs ───────────────────────────────── */
+        .main-tabs {
+            display: flex;
+            gap: 0;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(30, 60, 40, .07);
+            margin-bottom: 24px
+        }
+
+        .main-tab {
+            flex: 1;
+            text-align: center;
+            padding: 15px 10px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all .2s;
+            background: #fff;
+            color: #748c77;
+            border: none;
+            font-family: 'Outfit', sans-serif;
+            line-height: 1.2
+        }
+
+        .main-tab.active {
+            background: linear-gradient(135deg, #2bcf74, #1db954);
+            color: #fff
+        }
+
+        .main-tab:hover:not(.active) {
+            background: #f0faf4;
+            color: #2bcf74
+        }
+
+        .tab-pane {
+            display: none
+        }
+
+        .tab-pane.active {
+            display: block
+        }
+
+        /* ── Cards ──────────────────────────────── */
+        .panel-card {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 4px 24px rgba(30, 60, 40, .08);
+            margin-bottom: 20px;
+            overflow: hidden
+        }
+
+        .panel-card-hdr {
+            padding: 16px 26px;
+            color: #fff;
+            font-weight: 700;
+            font-size: 15px;
+            background: linear-gradient(135deg, #2bcf74, #1db954)
+        }
+
+        .panel-card-hdr.orange {
+            background: linear-gradient(135deg, #ff6b35, #f7931e)
+        }
+
+        .panel-card-hdr.blue {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8)
+        }
+
+        .panel-card-hdr.purple {
+            background: linear-gradient(135deg, #6a3de8, #4f46e5)
+        }
+
+        .panel-card-body {
+            padding: 22px 26px 26px
+        }
+
+        /* ── Form elements ──────────────────────── */
+        .fg {
+            margin-bottom: 0
+        }
+
+        .fg label {
+            display: block;
+            font-size: 10px;
+            font-weight: 800;
+            color: #5c8068;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            margin-bottom: 5px
+        }
+
+        .fg input,
+        .fg select,
+        .fg textarea {
+            border: 2px solid #e1efe5;
+            border-radius: 11px;
+            padding: 10px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #1a3c2a;
+            width: 100%;
+            outline: none;
+            transition: border-color .2s;
+            font-family: 'Outfit', sans-serif;
+            background: #fff
+        }
+
+        .fg input:focus,
+        .fg select:focus,
+        .fg textarea:focus {
+            border-color: #2bcf74
+        }
+
+        .fg textarea {
+            resize: vertical;
+            min-height: 58px
+        }
+
+        .form-grid {
+            display: grid;
+            gap: 12px
+        }
+
+        .form-grid.g2 {
+            grid-template-columns: 1fr 1fr
+        }
+
+        .form-grid.g3 {
+            grid-template-columns: 1fr 1fr 1fr
+        }
+
+        .form-grid.g4 {
+            grid-template-columns: 1fr 1fr 1fr auto
+        }
+
+        @media(max-width:768px) {
+
+            .form-grid.g2,
+            .form-grid.g3,
+            .form-grid.g4 {
+                grid-template-columns: 1fr
+            }
+
+            .main-tab {
+                font-size: 11px;
+                padding: 12px 6px
+            }
+        }
+
+        /* ── Buttons ────────────────────────────── */
+        .btn-go {
+            background: linear-gradient(135deg, #2bcf74, #1db954);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 11px 26px;
+            cursor: pointer;
+            transition: all .25s;
+            font-family: 'Outfit', sans-serif;
+            white-space: nowrap;
+            align-self: end
+        }
+
+        .btn-go:hover {
+            background: #25bb67;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(43, 207, 116, .3)
+        }
+
+        .btn-go:disabled {
+            background: #e1efe5;
+            color: #a0bba6;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none
+        }
+
+        .btn-go.blue {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8)
+        }
+
+        .btn-go.blue:hover {
+            background: #1d4ed8
+        }
+
+        .fmsg {
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+            min-height: 16px
+        }
+
+        .fmsg.ok {
+            color: #1a8a45
+        }
+
+        .fmsg.err {
+            color: #d90429
+        }
+
+        /* ── Tables ─────────────────────────────── */
+        .dt th {
+            background: transparent;
+            color: #a0bba6;
+            font-weight: 800;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+            border-bottom: 2px solid #edf6ef;
+            padding: 12px 16px
+        }
+
+        .dt td {
+            padding: 11px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #3d5045;
+            border-bottom: 1px solid #edf6ef;
+            vertical-align: middle
+        }
+
+        .dt tr:last-child td {
+            border-bottom: none
+        }
+
+        .count-pill {
+            background: rgba(255, 255, 255, .3);
+            padding: 2px 10px;
+            border-radius: 99px;
+            font-size: 11px;
+            font-weight: 800;
+            margin-left: 8px
+        }
+
+        /* ── Badges ─────────────────────────────── */
+        .badge-pill {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .04em;
+            text-transform: uppercase
+        }
+
+        /* Holiday types */
+        .ht-regular {
+            background: #fff3e0;
+            color: #e65100
+        }
+
+        .ht-special_non_working {
+            background: #ede7f6;
+            color: #5e35b1
+        }
+
+        .ht-special_working {
+            background: #e8f5e9;
+            color: #2e7d32
+        }
+
+        .ht-company {
+            background: #e3f2fd;
+            color: #0277bd
+        }
+
+        /* Duty */
+        .dt-field {
+            background: #fef3c7;
+            color: #92400e
+        }
+
+        .dt-task {
+            background: #dbeafe;
+            color: #1e40af
+        }
+
+        .dt-official {
+            background: #e0e7ff;
+            color: #3730a3
+        }
+
+        .dt-excused {
+            background: #fce7f3;
+            color: #9d174d
+        }
+
+        .dt-override {
+            background: #fee2e2;
+            color: #991b1b
+        }
+
+        /* Role */
+        .rt-regular {
+            background: #e8f5e9;
+            color: #2e7d32
+        }
+
+        .rt-field {
+            background: #fef3c7;
+            color: #92400e
+        }
+
+        .rt-driver {
+            background: #dbeafe;
+            color: #1e40af
+        }
+
+        .rt-flexible {
+            background: #ede7f6;
+            color: #5e35b1
+        }
+
+        /* Recurring */
+        .rec-pill {
+            background: #e8f5e9;
+            color: #2e7d32;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 6px
+        }
+
+        /* ── Row action buttons ──────────────────── */
+        .ibtn {
+            border: none;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 5px 11px;
+            cursor: pointer;
+            transition: all .2s;
+            font-family: 'Outfit', sans-serif;
+            margin-right: 3px
+        }
+
+        .ibtn-edit {
+            background: #e3f2fd;
+            color: #0277bd
+        }
+
+        .ibtn-edit:hover {
+            background: #bbdefb
+        }
+
+        .ibtn-del {
+            background: #fde2e2;
+            color: #d90429
+        }
+
+        .ibtn-del:hover {
+            background: #f8b4b4
+        }
+
+        .ibtn-save {
+            background: #e8f5e9;
+            color: #2e7d32
+        }
+
+        .ibtn-save:hover {
+            background: #c8e6c9
+        }
+
+        .ibtn-cancel {
+            background: #f5f5f5;
+            color: #666
+        }
+
+        .ibtn-cancel:hover {
+            background: #e0e0e0
+        }
+
+        .edit-inp {
+            border: 2px solid #2bcf74;
+            border-radius: 7px;
+            padding: 5px 9px;
+            font-size: 12px;
+            font-weight: 600;
+            font-family: 'Outfit', sans-serif;
+            width: 100%;
+            outline: none
+        }
+
+        .edit-sel {
+            border: 2px solid #2bcf74;
+            border-radius: 7px;
+            padding: 5px 9px;
+            font-size: 11px;
+            font-weight: 600;
+            font-family: 'Outfit', sans-serif;
+            width: 100%;
+            outline: none;
+            background: #fff
+        }
+
+        /* ── Role select in table ───────────────── */
+        .role-sel {
+            border: 2px solid #e1efe5;
+            border-radius: 9px;
+            padding: 5px 10px;
+            font-size: 11px;
+            font-weight: 700;
+            font-family: 'Outfit', sans-serif;
+            outline: none;
+            background: #fff;
+            cursor: pointer;
+            transition: border-color .2s
+        }
+
+        .role-sel:focus {
+            border-color: #2bcf74
+        }
+
+        /* ── Confirm modal ──────────────────────── */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, .45);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center
+        }
+
+        .overlay.show {
+            display: flex
+        }
+
+        .modal-box {
+            background: #fff;
+            border-radius: 22px;
+            padding: 36px 42px;
+            max-width: 380px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 14px 44px rgba(0, 0, 0, .15);
+            animation: fadeUp .28s ease
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: #1a3c2a;
+            margin-bottom: 7px
+        }
+
+        .modal-text {
+            font-size: 14px;
+            color: #748c77;
+            font-weight: 500;
+            margin-bottom: 24px
+        }
+
+        .modal-btns {
+            display: flex;
+            gap: 10px;
+            justify-content: center
+        }
+
+        .mbtn {
+            border: none;
+            border-radius: 12px;
+            padding: 10px 26px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+            transition: all .2s
+        }
+
+        .mbtn-yes {
+            background: #d90429;
+            color: #fff
+        }
+
+        .mbtn-yes:hover {
+            background: #b80325
+        }
+
+        .mbtn-no {
+            background: #f0f0f0;
+            color: #555
+        }
+
+        .mbtn-no:hover {
+            background: #e0e0e0
+        }
+
+        /* ── Status notice ──────────────────────── */
+        .empty-note {
+            text-align: center;
+            padding: 18px;
+            color: #a0bba6;
+            font-size: 13px;
+            font-weight: 600
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ═══════════════════════════════════════
+     LOGIN GATE
+═══════════════════════════════════════ -->
+    <div id="loginGate" class="login-gate">
+        <div class="login-card">
+            <div class="login-icon">🛡️</div>
+            <div class="login-title">Admin Panel</div>
+            <div class="login-subtitle">Holiday Management &amp; Field Duty — enter password to continue</div>
+            <input type="password" id="adminPwd" class="login-input" placeholder="Enter admin password"
+                autocomplete="off">
+            <button id="loginBtn" class="login-btn" onclick="attemptLogin()">Unlock Admin Panel</button>
+            <div id="loginErr" class="login-error"></div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+     ADMIN PANEL
+═══════════════════════════════════════ -->
+    <div id="adminPanel" class="admin-panel">
+
+        <!-- Header -->
+        <div class="brand-header">
+            <button class="btn-logout" onclick="logout()">🔒 Logout</button>
+            <img src="assets/images/logo.jpg" alt="ECOZONE Logo" class="brand-logo">
+            <h1>ECOZONE</h1>
+            <div class="subtitle">Admin Panel</div>
+            <div id="liveClock" class="live-clock"></div>
+        </div>
+
+        <div class="main-container main-container-wide">
+
+            <!-- Nav -->
+            <div class="mb-4" style="display:flex;justify-content:space-between;align-items:center;">
+                <a href="attendance.html" class="nav-link-back">&larr; Back to Attendance Logs</a>
+            </div>
+
+            <!-- Holiday Today Banner -->
+            <div id="todayBanner" class="today-banner">
+                <span>🏖️</span> <span id="todayBannerText"></span>
+            </div>
+
+            <!-- ── TABS ── -->
+            <div class="main-tabs">
+                <button class="main-tab active" onclick="switchTab('holidays',this)">🏖️ Holiday<br>Management</button>
+                <button class="main-tab" onclick="switchTab('manual',this)">📋 Manual<br>Attendance</button>
+                <button class="main-tab" onclick="switchTab('roles',this)">👤 Employee<br>Roles</button>
+                <button class="main-tab" onclick="switchTab('history',this)">📜 Override<br>History</button>
+            </div>
+
+            <!-- ════════════════════════════════════
+             TAB 1 — HOLIDAY MANAGEMENT
+        ════════════════════════════════════ -->
+            <div id="tab-holidays" class="tab-pane active">
+
+                <!-- Add Holiday -->
+                <div class="panel-card">
+                    <div class="panel-card-hdr orange">➕ Add New Holiday</div>
+                    <div class="panel-card-body">
+                        <div class="form-grid g4">
+                            <div class="fg">
+                                <label for="hName">Holiday Name</label>
+                                <input type="text" id="hName" placeholder="e.g. Christmas Day" maxlength="200">
+                            </div>
+                            <div class="fg">
+                                <label for="hDate">Date</label>
+                                <input type="date" id="hDate">
+                            </div>
+                            <div class="fg">
+                                <label for="hType">Type</label>
+                                <select id="hType">
+                                    <option value="REGULAR">Regular Holiday</option>
+                                    <option value="SPECIAL_NON_WORKING">Special Non-Working</option>
+                                    <option value="SPECIAL_WORKING">Special Working</option>
+                                    <option value="COMPANY">Company Holiday</option>
+                                </select>
+                            </div>
+                            <button class="btn-go" style="background:linear-gradient(135deg,#ff6b35,#f7931e)"
+                                id="hAddBtn" onclick="addHoliday()">Add</button>
+                        </div>
+                        <div id="hMsg" class="fmsg"></div>
+                    </div>
+                </div>
+
+                <!-- Holiday table -->
+                <div class="panel-card">
+                    <div class="panel-card-hdr orange">
+                        📋 Holiday Calendar <span id="hCount" class="count-pill">0</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="dt table">
+                            <thead>
+                                <tr>
+                                    <th>Holiday</th>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Recurring</th>
+                                    <th style="text-align:right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="hBody"></tbody>
+                        </table>
+                    </div>
+                    <p id="hStatus" class="empty-note" style="display:none"></p>
+                </div>
+            </div>
+
+            <!-- ════════════════════════════════════
+             TAB 2 — MANUAL ATTENDANCE
+        ════════════════════════════════════ -->
+            <div id="tab-manual" class="tab-pane">
+
+                <div class="panel-card">
+                    <div class="panel-card-hdr blue">➕ Record Manual / Field Attendance</div>
+                    <div class="panel-card-body">
+                        <div class="form-grid g3">
+                            <div class="fg">
+                                <label for="maEmployee">Employee</label>
+                                <select id="maEmployee">
+                                    <option value="">Loading...</option>
+                                </select>
+                            </div>
+                            <div class="fg">
+                                <label for="maDate">Date</label>
+                                <input type="date" id="maDate">
+                            </div>
+                            <div class="fg">
+                                <label for="maStatus">Duty Status</label>
+                                <select id="maStatus">
+                                    <option value="ON_FIELD_DUTY">🚛 On Field Duty</option>
+                                    <option value="COMPANY_TASK">🏢 Company Task</option>
+                                    <option value="OFFICIAL_BUSINESS">💼 Official Business</option>
+                                    <option value="LATE_EXCUSED">⏰ Late Excused</option>
+                                    <option value="ADMIN_OVERRIDE">🔑 Admin Override</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-grid g2" style="margin-top:12px">
+                            <div class="fg">
+                                <label for="maTimeIn">Time In <span
+                                        style="font-weight:500;text-transform:none">(optional)</span></label>
+                                <input type="time" id="maTimeIn">
+                            </div>
+                            <div class="fg">
+                                <label for="maTimeOut">Time Out <span
+                                        style="font-weight:500;text-transform:none">(optional)</span></label>
+                                <input type="time" id="maTimeOut">
+                            </div>
+                        </div>
+                        <div class="fg" style="margin-top:12px">
+                            <label for="maReason">Reason / Notes</label>
+                            <textarea id="maReason"
+                                placeholder="e.g. Driver assigned to deliver supplies to Cavite branch"
+                                maxlength="500"></textarea>
+                        </div>
+                        <button class="btn-go blue" id="maBtn" onclick="addManualAttendance()"
+                            style="margin-top:14px">Submit Manual Attendance</button>
+                        <div id="maMsg" class="fmsg"></div>
+                    </div>
+                </div>
+
+                <!-- Records table -->
+                <div class="panel-card">
+                    <div class="panel-card-hdr blue">
+                        📋 Manual Attendance Records <span id="maCount" class="count-pill">0</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="dt table">
+                            <thead>
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Date</th>
+                                    <th>Duty Status</th>
+                                    <th>Time In/Out</th>
+                                    <th>Reason</th>
+                                    <th style="text-align:right">Del</th>
+                                </tr>
+                            </thead>
+                            <tbody id="maBody"></tbody>
+                        </table>
+                    </div>
+                    <p id="maStatus2" class="empty-note" style="display:none"></p>
+                </div>
+            </div>
+
+            <!-- ════════════════════════════════════
+             TAB 3 — EMPLOYEE ROLES
+        ════════════════════════════════════ -->
+            <div id="tab-roles" class="tab-pane">
+                <div class="panel-card">
+                    <div class="panel-card-hdr purple">
+                        👤 Employee Roles <span id="roleCount" class="count-pill">0</span>
+                    </div>
+                    <div style="padding:12px 22px;background:#f8fbf9;color:#748c77;font-size:12px;font-weight:600;">
+                        Assign roles to employees. <strong>FIELD</strong>, <strong>DRIVER</strong>, and
+                        <strong>FLEXIBLE</strong> roles allow late/manual attendance without being marked absent.
+                    </div>
+                    <div class="table-responsive">
+                        <table class="dt table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nickname</th>
+                                    <th>Current Role</th>
+                                    <th style="text-align:right">Change Role</th>
+                                </tr>
+                            </thead>
+                            <tbody id="roleBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ════════════════════════════════════
+             TAB 4 — OVERRIDE HISTORY
+        ════════════════════════════════════ -->
+            <div id="tab-history" class="tab-pane">
+                <div class="panel-card">
+                    <div class="panel-card-hdr" style="background:linear-gradient(135deg,#6a3de8,#4f46e5)">
+                        📜 All Manual Attendance History <span id="histCount" class="count-pill">0</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="dt table">
+                            <thead>
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Time In</th>
+                                    <th>Time Out</th>
+                                    <th>Reason</th>
+                                    <th>Submitted</th>
+                                </tr>
+                            </thead>
+                            <tbody id="histBody"></tbody>
+                        </table>
+                    </div>
+                    <p id="histStatus" class="empty-note" style="display:none"></p>
+                </div>
+            </div>
+
+            <div class="footer-text">ECOZONE Attendance System &copy; 2026</div>
+        </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div id="confirmOverlay" class="overlay">
+        <div class="modal-box">
+            <div class="modal-title">Confirm Delete</div>
+            <div id="confirmText" class="modal-text">Are you sure?</div>
+            <div class="modal-btns">
+                <button class="mbtn mbtn-no" onclick="cancelConfirm()">Cancel</button>
+                <button class="mbtn mbtn-yes" onclick="doConfirm()">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="libs/bootstrap.bundle.min.js"></script>
+    <script>
+        // ─── Helpers (must be first) ──────────
+        function showMsg(el, msg, cls) { el.textContent = msg; el.className = 'fmsg ' + cls; setTimeout(function () { el.textContent = '' }, 4500) }
+        function esc(s) { var d = document.createElement('div'); d.appendChild(document.createTextNode(s == null ? '' : String(s))); return d.innerHTML }
+
+        // ─── Clock ────────────────────────────
+        var CLK = document.getElementById('liveClock');
+        function tick() { var n = new Date(); CLK.textContent = n.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) + '  •  ' + n.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) }
+        tick(); setInterval(tick, 1000);
+
+        // ─── ALL DOM references (declare BEFORE showAdmin) ───
+        var loginGate = document.getElementById('loginGate'), adminPanel = document.getElementById('adminPanel');
+        var pwdInp = document.getElementById('adminPwd'), loginErr = document.getElementById('loginErr'), loginBtn = document.getElementById('loginBtn');
+
+        // Holidays
+        var hAllData = [], hBody = document.getElementById('hBody'), hCount = document.getElementById('hCount'), hStatus = document.getElementById('hStatus');
+        var hMsg = document.getElementById('hMsg'), hAddBtn = document.getElementById('hAddBtn');
+        var hTypeLabels = { REGULAR: 'Regular Holiday', SPECIAL_NON_WORKING: 'Special Non-Working', SPECIAL_WORKING: 'Special Working', COMPANY: 'Company Holiday' };
+        var hEditingId = null;
+
+        // Manual Attendance
+        var maMsg = document.getElementById('maMsg'), maBtn = document.getElementById('maBtn');
+        var maBody = document.getElementById('maBody'), maCount = document.getElementById('maCount'), maStatus2 = document.getElementById('maStatus2');
+        var dutyLabels = { ON_FIELD_DUTY: '🚛 Field Duty', COMPANY_TASK: '🏢 Company Task', OFFICIAL_BUSINESS: '💼 Official Business', LATE_EXCUSED: '⏰ Late Excused', ADMIN_OVERRIDE: '🔑 Admin Override' };
+        var dutyCls = { ON_FIELD_DUTY: 'dt-field', COMPANY_TASK: 'dt-task', OFFICIAL_BUSINESS: 'dt-official', LATE_EXCUSED: 'dt-excused', ADMIN_OVERRIDE: 'dt-override' };
+
+        // Employee Roles
+        var roleBody = document.getElementById('roleBody'), roleCount = document.getElementById('roleCount');
+        var roleCls = { REGULAR: 'rt-regular', FIELD: 'rt-field', DRIVER: 'rt-driver', FLEXIBLE: 'rt-flexible' };
+        var roleOpts = ['REGULAR', 'FIELD', 'DRIVER', 'FLEXIBLE'];
+
+        // Override History
+        var histBody = document.getElementById('histBody'), histCount = document.getElementById('histCount'), histStatus = document.getElementById('histStatus');
+
+        // Employees list
+        var empList = [];
+
+        // Confirm modal
+        var pendingDelete = null;
+
+        // ─── Tabs ─────────────────────────────
+        function switchTab(name, el) {
+            document.querySelectorAll('.tab-pane').forEach(function (t) { t.classList.remove('active') });
+            document.querySelectorAll('.main-tab').forEach(function (t) { t.classList.remove('active') });
+            document.getElementById('tab-' + name).classList.add('active');
+            el.classList.add('active');
+            if (name === 'history') loadHistory();
+        }
+
+        // ─── Today Holiday ────────────────────
+        function checkTodayHoliday() {
+            fetch('api/holidays.php?check_today=1').then(function (r) { return r.json() }).then(function (d) {
+                if (d.is_holiday) {
+                    var b = document.getElementById('todayBanner'), t = document.getElementById('todayBannerText');
+                    t.textContent = 'TODAY IS A ' + d.holiday_type.replace(/_/g, ' ') + ' HOLIDAY — ' + d.holiday_name + '. Attendance will be tagged accordingly.';
+                    b.style.display = 'block';
+                    if (d.holiday_type !== 'REGULAR') b.classList.add('special');
+                }
+            }).catch(function () { });
+        }
+
+        // ══════════════════════════════════════
+        // HOLIDAYS
+        // ══════════════════════════════════════
+
+        function loadHolidays() {
+            hBody.innerHTML = ''; hStatus.textContent = 'Loading…'; hStatus.style.display = 'block';
+            fetch('api/holidays.php').then(function (r) { return r.json() }).then(function (d) {
+                if (!d.success) { hStatus.textContent = 'Error: ' + d.message; return }
+                hAllData = d.data; renderHolidays(hAllData);
+            }).catch(function (e) { hStatus.textContent = 'Error: ' + e });
+        }
+
+        function renderHolidays(data) {
+            hBody.innerHTML = ''; hCount.textContent = data.length;
+            if (data.length === 0) { hStatus.textContent = 'No holidays configured yet. Add one above.'; hStatus.style.display = 'block'; return }
+            hStatus.style.display = 'none';
+            for (var i = 0; i < data.length; i++) {
+                var h = data[i], tr = document.createElement('tr'); tr.id = 'hrow-' + h.holiday_id;
+                var dt = new Date(h.holiday_date + 'T00:00:00');
+                var dtStr = dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                var rec = (h.is_recurring == 1 || h.is_recurring === true || h.is_recurring === '1');
+                tr.innerHTML = '<td style="font-weight:700">' + esc(h.holiday_name) + '</td>'
+                    + '<td>' + dtStr + '</td>'
+                    + '<td><span class="badge-pill ht-' + h.holiday_type.toLowerCase() + '">' + (hTypeLabels[h.holiday_type] || h.holiday_type) + '</span></td>'
+                    + '<td>' + (rec ? '<span class="rec-pill">♻️ Yearly</span>' : (h.year_specific ? '<span style="color:#a0bba6;font-size:12px">' + h.year_specific + ' only</span>' : '—')) + '</td>'
+                    + '<td style="text-align:right;white-space:nowrap">'
+                    + '<button class="ibtn ibtn-edit" onclick="hStartEdit(' + JSON.stringify(h) + ')">✏️ Edit</button>'
+                    + '<button class="ibtn ibtn-del" onclick="requestDelete(\'holiday\',' + h.holiday_id + ',\'' + esc(h.holiday_name) + '\')">🗑️</button>'
+                    + '</td>';
+                hBody.appendChild(tr);
+            }
+        }
+
+        function addHoliday() {
+            var name = document.getElementById('hName').value.trim();
+            var date = document.getElementById('hDate').value;
+            var type = document.getElementById('hType').value;
+            if (!name) { showMsg(hMsg, 'Enter a holiday name.', 'err'); return }
+            if (!date) { showMsg(hMsg, 'Select a date.', 'err'); return }
+            hAddBtn.disabled = true; hAddBtn.textContent = 'Adding…';
+            var fd = new FormData(); fd.append('holiday_name', name); fd.append('holiday_date', date); fd.append('holiday_type', type); fd.append('is_recurring', '0'); fd.append('year_specific', date.split('-')[0]);
+            fetch('api/holidays.php', { method: 'POST', body: fd }).then(function (r) { return r.json() }).then(function (d) {
+                hAddBtn.disabled = false; hAddBtn.textContent = 'Add';
+                if (d.success) { showMsg(hMsg, '✅ ' + name + ' added!', 'ok'); document.getElementById('hName').value = ''; document.getElementById('hDate').value = ''; loadHolidays(); checkTodayHoliday() }
+                else showMsg(hMsg, '❌ ' + d.message, 'err');
+            }).catch(function (e) { hAddBtn.disabled = false; hAddBtn.textContent = 'Add'; showMsg(hMsg, '❌ ' + e, 'err') });
+        }
+
+        function hStartEdit(h) {
+            if (hEditingId) hCancelEdit(); hEditingId = h.holiday_id;
+            var tr = document.getElementById('hrow-' + h.holiday_id); if (!tr) return;
+            var cells = tr.querySelectorAll('td');
+            var typeOpts = ['REGULAR', 'SPECIAL_NON_WORKING', 'SPECIAL_WORKING', 'COMPANY'];
+            var sel = '<select class="edit-sel" id="hEditType">';
+            typeOpts.forEach(function (v) { sel += '<option value="' + v + '"' + (v === h.holiday_type ? ' selected' : '') + '>' + hTypeLabels[v] + '</option>' }); sel += '</select>';
+            cells[0].innerHTML = '<input class="edit-inp" id="hEditName" value="' + esc(h.holiday_name) + '">';
+            cells[1].innerHTML = '<input class="edit-inp" id="hEditDate" type="date" value="' + h.holiday_date + '">';
+            cells[2].innerHTML = sel; cells[3].innerHTML = '';
+            cells[4].innerHTML = '<button class="ibtn ibtn-save" onclick="hSaveEdit(' + h.holiday_id + ')">💾 Save</button>'
+                + '<button class="ibtn ibtn-cancel" onclick="hCancelEdit()">Cancel</button>';
+        }
+        function hCancelEdit() { hEditingId = null; renderHolidays(hAllData) }
+        function hSaveEdit(id) {
+            var name = document.getElementById('hEditName').value.trim();
+            var date = document.getElementById('hEditDate').value;
+            var type = document.getElementById('hEditType').value;
+            if (!name || !date) return;
+            var body = 'holiday_id=' + id + '&holiday_name=' + encodeURIComponent(name) + '&holiday_date=' + encodeURIComponent(date) + '&holiday_type=' + encodeURIComponent(type) + '&is_recurring=0&year_specific=' + date.split('-')[0];
+            fetch('api/holidays.php', { method: 'PUT', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body })
+                .then(function (r) { return r.json() }).then(function (d) {
+                    hEditingId = null; if (d.success) { showMsg(hMsg, '✅ Holiday updated!', 'ok'); loadHolidays() }
+                    else { showMsg(hMsg, '❌ ' + d.message, 'err'); renderHolidays(hAllData) }
+                }).catch(function () { hEditingId = null; renderHolidays(hAllData) });
+        }
+
+        // ══════════════════════════════════════
+        // EMPLOYEES
+        // ══════════════════════════════════════
+        function loadEmployees() {
+            fetch('api/get_employees.php').then(function (r) { return r.json() }).then(function (data) {
+                empList = data;
+                var sel = document.getElementById('maEmployee');
+                sel.innerHTML = '<option value="">-- Select Employee --</option>';
+                data.forEach(function (e) {
+                    var o = document.createElement('option'); o.value = e.employee_id;
+                    o.textContent = 'ID ' + e.employee_id + ' — ' + e.nickname + (e.employee_role && e.employee_role !== 'REGULAR' ? ' [' + e.employee_role + ']' : '');
+                    sel.appendChild(o);
+                });
+            }).catch(function () { });
+        }
+
+        // ══════════════════════════════════════
+        // MANUAL ATTENDANCE
+        // ══════════════════════════════════════
+
+        function addManualAttendance() {
+            var eid = document.getElementById('maEmployee').value;
+            var date = document.getElementById('maDate').value;
+            var status = document.getElementById('maStatus').value;
+            var reason = document.getElementById('maReason').value.trim();
+            var ti = document.getElementById('maTimeIn').value;
+            var to = document.getElementById('maTimeOut').value;
+            if (!eid) { showMsg(maMsg, 'Select an employee.', 'err'); return }
+            if (!date) { showMsg(maMsg, 'Select a date.', 'err'); return }
+            maBtn.disabled = true; maBtn.textContent = 'Submitting…';
+            var fd = new FormData(); fd.append('employee_id', eid); fd.append('attendance_date', date); fd.append('duty_status', status); fd.append('duty_reason', reason); fd.append('time_in', ti); fd.append('time_out', to); fd.append('admin_notes', 'Entered by admin');
+            fetch('api/manual_attendance.php', { method: 'POST', body: fd }).then(function (r) { return r.json() }).then(function (d) {
+                maBtn.disabled = false; maBtn.textContent = 'Submit Manual Attendance';
+                if (d.success) { showMsg(maMsg, '✅ ' + d.message, 'ok'); document.getElementById('maReason').value = ''; loadManualRecords() }
+                else showMsg(maMsg, '❌ ' + d.message, 'err');
+            }).catch(function (e) { maBtn.disabled = false; maBtn.textContent = 'Submit Manual Attendance'; showMsg(maMsg, '❌ ' + e, 'err') });
+        }
+
+        function loadManualRecords() {
+            fetch('api/manual_attendance.php').then(function (r) { return r.json() }).then(function (d) {
+                if (!d.success) return; maCount.textContent = d.count; maBody.innerHTML = '';
+                if (d.count === 0) { maStatus2.textContent = 'No manual records yet.'; maStatus2.style.display = 'block'; return }
+                maStatus2.style.display = 'none';
+                d.data.forEach(function (r) {
+                    var tr = document.createElement('tr');
+                    var dt = new Date(r.attendance_date + 'T00:00:00');
+                    tr.innerHTML = '<td style="font-weight:700">' + esc(r.nickname) + '<br><small style="color:#a0bba6">ID ' + r.employee_id + '</small></td>'
+                        + '<td>' + dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + '</td>'
+                        + '<td><span class="badge-pill ' + (dutyCls[r.duty_status] || 'dt-field') + '">' + (dutyLabels[r.duty_status] || r.duty_status) + '</span></td>'
+                        + '<td style="font-size:12px">' + (r.time_in ? r.time_in.split(' ')[1] || r.time_in : '—') + ' → ' + (r.time_out ? r.time_out.split(' ')[1] || r.time_out : '—') + '</td>'
+                        + '<td style="font-size:12px;max-width:160px;word-break:break-word">' + esc(r.duty_reason || '—') + '</td>'
+                        + '<td style="text-align:right"><button class="ibtn ibtn-del" onclick="requestDelete(\'manual\',' + r.id + ',\'' + esc(r.nickname) + '\')">🗑️</button></td>';
+                    maBody.appendChild(tr);
+                });
+            }).catch(function () { });
+        }
+
+        // ══════════════════════════════════════
+        // EMPLOYEE ROLES
+        // ══════════════════════════════════════
+
+        function loadRoles() {
+            fetch('api/employee_roles.php').then(function (r) { return r.json() }).then(function (d) {
+                if (!d.success) return; roleCount.textContent = d.count; roleBody.innerHTML = '';
+                d.data.forEach(function (e) {
+                    var tr = document.createElement('tr');
+                    var sel = '<select class="role-sel" onchange="changeRole(' + e.employee_id + ',this.value)">';
+                    roleOpts.forEach(function (v) { sel += '<option value="' + v + '"' + (v === e.employee_role ? ' selected' : '') + '>' + v + '</option>' });
+                    sel += '</select>';
+                    tr.innerHTML = '<td style="font-weight:700;color:#a0bba6">' + e.employee_id + '</td>'
+                        + '<td style="font-weight:700">' + esc(e.nickname) + '</td>'
+                        + '<td><span class="badge-pill ' + (roleCls[e.employee_role] || 'rt-regular') + '">' + e.employee_role + '</span></td>'
+                        + '<td style="text-align:right">' + sel + '</td>';
+                    roleBody.appendChild(tr);
+                });
+            }).catch(function () { });
+        }
+
+        function changeRole(eid, role) {
+            fetch('api/employee_roles.php', { method: 'PUT', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'employee_id=' + eid + '&employee_role=' + role })
+                .then(function (r) { return r.json() }).then(function (d) {
+                    if (d.success) { showMsg(maMsg, '✅ ' + d.message, 'ok'); loadRoles(); loadEmployees() }
+                    else showMsg(maMsg, '❌ ' + d.message, 'err');
+                }).catch(function (e) { showMsg(maMsg, '❌ ' + e, 'err') });
+        }
+
+        // ══════════════════════════════════════
+        // HISTORY
+        // ══════════════════════════════════════
+        function loadHistory() {
+            fetch('api/manual_attendance.php').then(function (r) { return r.json() }).then(function (d) {
+                if (!d.success) return; histCount.textContent = d.count; histBody.innerHTML = '';
+                if (d.count === 0) { histStatus.textContent = 'No records.'; histStatus.style.display = 'block'; return }
+                histStatus.style.display = 'none';
+                d.data.forEach(function (r) {
+                    var tr = document.createElement('tr');
+                    tr.innerHTML = '<td style="font-weight:700">' + esc(r.nickname) + '</td>'
+                        + '<td>' + r.attendance_date + '</td>'
+                        + '<td><span class="badge-pill ' + (dutyCls[r.duty_status] || 'dt-field') + '">' + (dutyLabels[r.duty_status] || r.duty_status) + '</span></td>'
+                        + '<td style="font-size:12px">' + (r.time_in || '—') + '</td>'
+                        + '<td style="font-size:12px">' + (r.time_out || '—') + '</td>'
+                        + '<td style="font-size:12px;max-width:130px;word-break:break-word">' + esc(r.duty_reason || '—') + '</td>'
+                        + '<td style="font-size:11px;color:#a0bba6">' + r.created_at + '</td>';
+                    histBody.appendChild(tr);
+                });
+            }).catch(function () { });
+        }
+
+        // ══════════════════════════════════════
+        // CONFIRM / DELETE
+        // ══════════════════════════════════════
+        function requestDelete(type, id, name) {
+            pendingDelete = { type: type, id: id };
+            document.getElementById('confirmText').textContent = 'Delete "' + name + '"? This cannot be undone.';
+            document.getElementById('confirmOverlay').classList.add('show');
+        }
+        function cancelConfirm() { pendingDelete = null; document.getElementById('confirmOverlay').classList.remove('show') }
+        function doConfirm() {
+            if (!pendingDelete) return;
+            document.getElementById('confirmOverlay').classList.remove('show');
+            var url = pendingDelete.type === 'holiday' ? 'api/holidays.php?id=' + pendingDelete.id : 'api/manual_attendance.php?id=' + pendingDelete.id;
+            fetch(url, { method: 'DELETE' }).then(function (r) { return r.json() }).then(function (d) {
+                var msg = d.success ? '🗑️ Deleted.' : '❌ ' + d.message;
+                var cls = d.success ? 'ok' : 'err';
+                if (pendingDelete && pendingDelete.type === 'holiday') { showMsg(hMsg, msg, cls); loadHolidays(); checkTodayHoliday() }
+                else { showMsg(maMsg, msg, cls); loadManualRecords() }
+                pendingDelete = null;
+            }).catch(function (e) { showMsg(hMsg, '❌ ' + e, 'err'); pendingDelete = null });
+        }
+
+        // ══════════════════════════════════════
+        // LOGIN (must be AFTER all declarations)
+        // ══════════════════════════════════════
+        pwdInp.addEventListener('keydown', function (e) { if (e.key === 'Enter') attemptLogin() });
+        function attemptLogin() {
+            var pwd = pwdInp.value.trim();
+            if (!pwd) { loginErr.textContent = 'Please enter the admin password.'; return }
+            loginBtn.disabled = true; loginBtn.textContent = 'Verifying…'; loginErr.textContent = '';
+            fetch('api/admin_auth.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pwd }) })
+                .then(function (r) { return r.json() }).then(function (d) {
+                    loginBtn.disabled = false; loginBtn.textContent = 'Unlock Admin Panel';
+                    if (d.success) { sessionStorage.setItem('eco_admin', '1'); showAdmin() }
+                    else { loginErr.textContent = d.message || 'Invalid password.'; pwdInp.value = ''; pwdInp.focus() }
+                }).catch(function (e) { loginBtn.disabled = false; loginBtn.textContent = 'Unlock Admin Panel'; loginErr.textContent = 'Connection error: ' + e });
+        }
+        function showAdmin() {
+            loginGate.style.display = 'none'; adminPanel.style.display = 'block';
+            loadEmployees(); loadHolidays(); loadManualRecords(); loadRoles(); checkTodayHoliday();
+        }
+        function logout() { sessionStorage.removeItem('eco_admin'); window.location.href = 'attendance.html'; }
+
+        // ─── Auto-login from session (MUST be last) ───
+        if (sessionStorage.getItem('eco_admin') === '1') showAdmin();
+    </script>
+</body>
+
+</html>

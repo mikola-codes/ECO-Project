@@ -19,7 +19,7 @@ if (isset($_GET['date'])) {
 }
 
 $where_sql = implode(" AND ", $where_clauses);
-$query = "SELECT log_id, employee_id, nickname, log_time, log_type FROM attendance_log WHERE $where_sql ORDER BY log_time DESC";
+$query = "SELECT log_id, employee_id, nickname, log_time, log_type, holiday_flag, holiday_name, duty_status, duty_reason, admin_override FROM attendance_log WHERE $where_sql ORDER BY log_time DESC";
 
 $stmt = mysqli_prepare($connection, $query);
 if ($types) {
@@ -33,11 +33,16 @@ $logs = [];
 if ($result) {
     while ($row = mysqli_fetch_assoc($result)) {
         $logs[] = [
-            "log_id" => (int)$row['log_id'],
-            "employee_id" => (int)$row['employee_id'],
-            "nickname" => $row['nickname'],
-            "log_time" => $row['log_time'],
-            "log_type" => $row['log_type']
+            "log_id"         => (int)$row['log_id'],
+            "employee_id"    => (int)$row['employee_id'],
+            "nickname"       => $row['nickname'],
+            "log_time"       => $row['log_time'],
+            "log_type"       => $row['log_type'],
+            "holiday_flag"   => $row['holiday_flag'],
+            "holiday_name"   => $row['holiday_name'],
+            "duty_status"    => $row['duty_status'],
+            "duty_reason"    => $row['duty_reason'],
+            "admin_override" => (bool)$row['admin_override']
         ];
     }
 }

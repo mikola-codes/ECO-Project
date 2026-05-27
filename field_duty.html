@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECOZONE - Field Duty Management (Admin)</title>
+    <meta name="description" content="ECOZONE Admin — Manual attendance and field duty management.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        .login-gate {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 70vh
+        }
+
+        .login-card {
+            background: #fff;
+            border-radius: 24px;
+            box-shadow: 0 8px 40px rgba(30, 60, 40, .10);
+            padding: 50px 45px 40px;
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+            animation: fadeUp .5s ease
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .login-icon {
+            font-size: 48px;
+            margin-bottom: 10px
+        }
+
+        .login-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: #1a3c2a;
+            margin-bottom: 6px
+        }
+
+        .login-subtitle {
+            font-size: 13px;
+            color: #a0bba6;
+            font-weight: 600;
+            margin-bottom: 28px
+        }
+
+        .login-input {
+            border: 2px solid #e1efe5;
+            border-radius: 14px;
+            padding: 14px 20px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #1a3c2a;
+            width: 100%;
+            outline: none;
+            transition: border-color .3s;
+            font-family: 'Outfit', sans-serif
+        }
+
+        .login-input:focus {
+            border-color: #2bcf74
+        }
+
+        .login-btn {
+            margin-top: 18px;
+            background: linear-gradient(135deg, #2bcf74, #1db954);
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 700;
+            padding: 16px 50px;
+            width: 100%;
+            cursor: pointer;
+            transition: all .3s;
+            font-family: 'Outfit', sans-serif
+        }
+
+        .login-btn:hover {
+            background: #25bb67;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(43, 207, 116, .35)
+        }
+
+        .login-btn:disabled {
+            background: #e1efe5;
+            color: #a0bba6;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none
+        }
+
+        .login-error {
+            color: #d90429;
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 14px;
+            min-height: 20px
+        }
+
+        .admin-panel {
+            display: none
+        }
+
+        .brand-header {
+            position: relative
+        }
+
+        .btn-logout {
+            background: none;
+            border: 2px solid rgba(255, 255, 255, .4);
+            color: rgba(255, 255, 255, .9);
+            border-radius: 10px;
+            padding: 6px 18px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .2s;
+            font-family: 'Outfit', sans-serif;
+            position: absolute;
+            top: 20px;
+            right: 20px
+        }
+
+        .btn-logout:hover {
+            background: rgba(255, 255, 255, .15);
+            border-color: #fff
+        }
+
+        /* Tabs */
+        .admin-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 22px;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(30, 60, 40, .06)
+        }
+
+        .admin-tab {
+            flex: 1;
+            text-align: center;
+            padding: 14px 20px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all .2s;
+            background: #fff;
+            color: #748c77;
+            border: none;
+            font-family: 'Outfit', sans-serif
+        }
+
+        .admin-tab.active {
+            background: linear-gradient(135deg, #2bcf74, #1db954);
+            color: #fff
+        }
+
+        .admin-tab:hover:not(.active) {
+            background: #f0faf4;
+            color: #2bcf74
+        }
+
+        .tab-content {
+            display: none
+        }
+
+        .tab-content.active {
+            display: block
+        }
+
+        /* Form card */
+        .form-card {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 4px 25px rgba(30, 60, 40, .08);
+            margin-bottom: 22px;
+            overflow: hidden
+        }
+
+        .form-card-header {
+            background: linear-gradient(135deg, #2bcf74, #1db954);
+            padding: 16px 28px;
+            color: #fff;
+            font-weight: 700;
+            font-size: 16px
+        }
+
+        .form-card-header.blue {
+            background: linear-gradient(135deg, #3b82f6, #2563eb)
+        }
+
+        .form-card-body {
+            padding: 25px 28px 28px
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px
+        }
+
+        .form-grid.col3 {
+            grid-template-columns: 1fr 1fr 1fr
+        }
+
+        @media(max-width:768px) {
+
+            .form-grid,
+            .form-grid.col3 {
+                grid-template-columns: 1fr
+            }
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            color: #5c8068;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            border: 2px solid #e1efe5;
+            border-radius: 12px;
+            padding: 11px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a3c2a;
+            width: 100%;
+            outline: none;
+            transition: border-color .3s;
+            font-family: 'Outfit', sans-serif;
+            background: #fff
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: #2bcf74
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #2bcf74, #1db954);
+            color: #fff;
+            border: none;
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: 700;
+            padding: 12px 32px;
+            cursor: pointer;
+            transition: all .3s;
+            font-family: 'Outfit', sans-serif;
+            margin-top: 14px
+        }
+
+        .btn-submit:hover {
+            background: #25bb67;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(43, 207, 116, .3)
+        }
+
+        .btn-submit:disabled {
+            background: #e1efe5;
+            color: #a0bba6;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none
+        }
+
+        .btn-submit.blue {
+            background: linear-gradient(135deg, #3b82f6, #2563eb)
+        }
+
+        .btn-submit.blue:hover {
+            background: #1d4ed8
+        }
+
+        .msg {
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 12px;
+            min-height: 18px
+        }
+
+        .msg.success {
+            color: #1a8a45
+        }
+
+        .msg.error {
+            color: #d90429
+        }
+
+        /* Table */
+        .data-card {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 4px 25px rgba(30, 60, 40, .08);
+            overflow: hidden;
+            margin-bottom: 22px
+        }
+
+        .data-card-header {
+            background: linear-gradient(135deg, #2bcf74, #1db954);
+            padding: 16px 28px;
+            color: #fff;
+            font-weight: 700;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .data-card-header.blue {
+            background: linear-gradient(135deg, #3b82f6, #2563eb)
+        }
+
+        .count-badge {
+            background: rgba(255, 255, 255, .3);
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 800
+        }
+
+        .data-table th {
+            background: transparent;
+            color: #a0bba6;
+            font-weight: 800;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid #edf6ef;
+            padding: 14px 18px
+        }
+
+        .data-table td {
+            padding: 12px 18px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #3d5045;
+            border-bottom: 1px solid #edf6ef;
+            vertical-align: middle
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none
+        }
+
+        .duty-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .04em;
+            text-transform: uppercase
+        }
+
+        .duty-field {
+            background: #fef3c7;
+            color: #92400e
+        }
+
+        .duty-task {
+            background: #dbeafe;
+            color: #1e40af
+        }
+
+        .duty-official {
+            background: #e0e7ff;
+            color: #3730a3
+        }
+
+        .duty-excused {
+            background: #fce7f3;
+            color: #9d174d
+        }
+
+        .duty-override {
+            background: #fee2e2;
+            color: #991b1b
+        }
+
+        .role-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .04em;
+            text-transform: uppercase
+        }
+
+        .role-regular {
+            background: #e8f5e9;
+            color: #2e7d32
+        }
+
+        .role-field {
+            background: #fef3c7;
+            color: #92400e
+        }
+
+        .role-driver {
+            background: #dbeafe;
+            color: #1e40af
+        }
+
+        .role-flexible {
+            background: #ede7f6;
+            color: #5e35b1
+        }
+
+        .btn-sm {
+            border: none;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 6px 12px;
+            cursor: pointer;
+            transition: all .2s;
+            font-family: 'Outfit', sans-serif;
+            margin-right: 3px
+        }
+
+        .btn-del {
+            background: #fde2e2;
+            color: #d90429
+        }
+
+        .btn-del:hover {
+            background: #f8b4b4
+        }
+
+        .btn-role-edit {
+            background: #dbeafe;
+            color: #1e40af
+        }
+
+        .btn-role-edit:hover {
+            background: #bfdbfe
+        }
+
+        /* Confirm Modal */
+        .confirm-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, .45);
+            z-index: 999;
+            align-items: center;
+            justify-content: center
+        }
+
+        .confirm-overlay.show {
+            display: flex
+        }
+
+        .confirm-box {
+            background: #fff;
+            border-radius: 20px;
+            padding: 35px 40px;
+            max-width: 380px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, .15);
+            animation: fadeUp .3s ease
+        }
+
+        .confirm-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: #1a3c2a;
+            margin-bottom: 8px
+        }
+
+        .confirm-text {
+            font-size: 14px;
+            color: #748c77;
+            font-weight: 500;
+            margin-bottom: 24px
+        }
+
+        .confirm-btns {
+            display: flex;
+            gap: 10px;
+            justify-content: center
+        }
+
+        .cbtn {
+            border: none;
+            border-radius: 12px;
+            padding: 10px 28px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+            transition: all .2s
+        }
+
+        .cbtn-yes {
+            background: #d90429;
+            color: #fff
+        }
+
+        .cbtn-yes:hover {
+            background: #b80325
+        }
+
+        .cbtn-no {
+            background: #f0f0f0;
+            color: #555
+        }
+
+        .cbtn-no:hover {
+            background: #e0e0e0
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Login Gate -->
+    <div id="loginGate" class="login-gate">
+        <div class="login-card">
+            <div class="login-icon">🚛</div>
+            <div class="login-title">Field Duty Admin</div>
+            <div class="login-subtitle">Enter admin password to manage field attendance</div>
+            <input type="password" id="adminPassword" class="login-input" placeholder="Enter admin password"
+                autocomplete="off">
+            <button id="loginBtn" class="login-btn" onclick="attemptLogin()">Unlock</button>
+            <div id="loginError" class="login-error"></div>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="adminPanel" class="admin-panel">
+        <div class="brand-header">
+            <button class="btn-logout" onclick="logout()">🔒 Logout</button>
+            <img src="assets/images/logo.jpg" alt="ECOZONE Logo" class="brand-logo">
+            <h1>ECOZONE</h1>
+            <div class="subtitle">Field Duty & Manual Attendance — Admin</div>
+            <div id="liveClock" class="live-clock"></div>
+        </div>
+
+        <div class="main-container main-container-wide">
+            <div class="mb-4" style="display:flex;justify-content:space-between;align-items:center;">
+                <a href="attendance.html" class="nav-link-back">&larr; Back to Attendance Logs</a>
+                <a href="holidays.html" class="nav-link-back" style="color:#ff6b35;">🏖️ Holiday Management</a>
+            </div>
+
+            <!-- Tabs -->
+            <div class="admin-tabs">
+                <button class="admin-tab active" onclick="switchTab('manual')">📋 Manual Attendance</button>
+                <button class="admin-tab" onclick="switchTab('roles')">👤 Employee Roles</button>
+                <button class="admin-tab" onclick="switchTab('history')">📜 Override History</button>
+            </div>
+
+            <!-- TAB 1: Manual Attendance -->
+            <div id="tab-manual" class="tab-content active">
+                <div class="form-card">
+                    <div class="form-card-header">➕ Record Manual Attendance</div>
+                    <div class="form-card-body">
+                        <div class="form-grid col3">
+                            <div class="form-group">
+                                <label for="maEmployee">Employee</label>
+                                <select id="maEmployee">
+                                    <option value="">Loading...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="maDate">Date</label>
+                                <input type="date" id="maDate">
+                            </div>
+                            <div class="form-group">
+                                <label for="maStatus">Duty Status</label>
+                                <select id="maStatus">
+                                    <option value="ON_FIELD_DUTY">🚛 On Field Duty</option>
+                                    <option value="COMPANY_TASK">🏢 Company Task</option>
+                                    <option value="OFFICIAL_BUSINESS">💼 Official Business</option>
+                                    <option value="LATE_EXCUSED">⏰ Late Excused</option>
+                                    <option value="ADMIN_OVERRIDE">🔑 Admin Override</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-grid" style="margin-top:14px;">
+                            <div class="form-group">
+                                <label for="maTimeIn">Time In (optional)</label>
+                                <input type="time" id="maTimeIn">
+                            </div>
+                            <div class="form-group">
+                                <label for="maTimeOut">Time Out (optional)</label>
+                                <input type="time" id="maTimeOut">
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-top:14px;">
+                            <label for="maReason">Reason / Notes</label>
+                            <textarea id="maReason" placeholder="e.g. Assigned to deliver supplies to Cavite branch"
+                                maxlength="500"></textarea>
+                        </div>
+                        <button class="btn-submit" id="maSubmitBtn" onclick="addManualAttendance()">Submit Manual
+                            Attendance</button>
+                        <div id="maMsg" class="msg"></div>
+                    </div>
+                </div>
+
+                <!-- Manual Attendance List -->
+                <div class="data-card">
+                    <div class="data-card-header">
+                        📋 Manual Attendance Records <span id="maCount" class="count-badge">0</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table table" id="maTable">
+                            <thead>
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Time In/Out</th>
+                                    <th>Reason</th>
+                                    <th style="text-align:right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="maTableBody"></tbody>
+                        </table>
+                    </div>
+                    <p id="maTableStatus" class="text-center mb-0" style="padding:16px;display:none"></p>
+                </div>
+            </div>
+
+            <!-- TAB 2: Employee Roles -->
+            <div id="tab-roles" class="tab-content">
+                <div class="data-card">
+                    <div class="data-card-header blue">
+                        👤 Employee Roles <span id="roleCount" class="count-badge">0</span>
+                    </div>
+                    <div style="padding:16px 24px;background:#f8fbf9;font-size:12px;color:#748c77;font-weight:600;">
+                        Assign roles to employees. <strong>FIELD</strong>, <strong>DRIVER</strong>, and
+                        <strong>FLEXIBLE</strong> roles allow late/manual attendance entries without being marked
+                        absent.
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nickname</th>
+                                    <th>Current Role</th>
+                                    <th style="text-align:right">Change Role</th>
+                                </tr>
+                            </thead>
+                            <tbody id="roleTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: Override History -->
+            <div id="tab-history" class="tab-content">
+                <div class="data-card">
+                    <div class="data-card-header" style="background:linear-gradient(135deg,#6a3de8,#4f46e5)">
+                        📜 All Manual Attendance History <span id="histCount" class="count-badge">0</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table table">
+                            <thead>
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Date</th>
+                                    <th>Duty Status</th>
+                                    <th>Time In</th>
+                                    <th>Time Out</th>
+                                    <th>Reason</th>
+                                    <th>Notes</th>
+                                    <th>Created</th>
+                                </tr>
+                            </thead>
+                            <tbody id="histTableBody"></tbody>
+                        </table>
+                    </div>
+                    <p id="histStatus" class="text-center mb-0" style="padding:16px;display:none"></p>
+                </div>
+            </div>
+
+            <div class="footer-text">ECOZONE Attendance System &copy; 2026</div>
+        </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div id="confirmOverlay" class="confirm-overlay">
+        <div class="confirm-box">
+            <div class="confirm-title" id="confirmTitle">Delete Entry?</div>
+            <div class="confirm-text" id="confirmText">Are you sure?</div>
+            <div class="confirm-btns">
+                <button class="cbtn cbtn-no" onclick="cancelConfirm()">Cancel</button>
+                <button class="cbtn cbtn-yes" onclick="doConfirm()">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="libs/bootstrap.bundle.min.js"></script>
+    <script>
+        // ─── Clock ────────────────────────────────
+        var clockEl = document.getElementById('liveClock');
+        function updateClock() { var n = new Date(); clockEl.textContent = n.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) + '  •  ' + n.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) }
+        updateClock(); setInterval(updateClock, 1000);
+
+        // ─── Login ────────────────────────────────
+        var loginGate = document.getElementById('loginGate'), adminPanel = document.getElementById('adminPanel');
+        var pwdInput = document.getElementById('adminPassword'), loginErr = document.getElementById('loginError'), loginBtn = document.getElementById('loginBtn');
+        pwdInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') attemptLogin() });
+
+        function attemptLogin() {
+            var pwd = pwdInput.value.trim(); if (!pwd) { loginErr.textContent = 'Please enter password.'; return }
+            loginBtn.disabled = true; loginBtn.textContent = 'Verifying...'; loginErr.textContent = '';
+            fetch('api/admin_auth.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pwd }) })
+                .then(function (r) { return r.json() }).then(function (d) {
+                    loginBtn.disabled = false; loginBtn.textContent = 'Unlock';
+                    if (d.success) { sessionStorage.setItem('eco_admin', '1'); showAdmin() }
+                    else { loginErr.textContent = d.message || 'Invalid password.'; pwdInput.value = ''; pwdInput.focus() }
+                }).catch(function (e) { loginBtn.disabled = false; loginBtn.textContent = 'Unlock'; loginErr.textContent = 'Error: ' + e });
+        }
+        function showAdmin() { loginGate.style.display = 'none'; adminPanel.style.display = 'block'; loadEmployees(); loadManualRecords(); loadRoles() }
+        function logout() { sessionStorage.removeItem('eco_admin'); adminPanel.style.display = 'none'; loginGate.style.display = 'flex'; pwdInput.value = ''; loginErr.textContent = '' }
+        if (sessionStorage.getItem('eco_admin') === '1') showAdmin();
+
+        // ─── Tabs ─────────────────────────────────
+        function switchTab(name) {
+            document.querySelectorAll('.tab-content').forEach(function (t) { t.classList.remove('active') });
+            document.querySelectorAll('.admin-tab').forEach(function (t) { t.classList.remove('active') });
+            document.getElementById('tab-' + name).classList.add('active');
+            event.target.classList.add('active');
+            if (name === 'history') loadHistory();
+        }
+
+        // ─── Employees List ───────────────────────
+        var employeeList = [];
+        function loadEmployees() {
+            fetch('api/get_employees.php').then(function (r) { return r.json() }).then(function (data) {
+                employeeList = data;
+                var sel = document.getElementById('maEmployee');
+                sel.innerHTML = '<option value="">-- Select Employee --</option>';
+                for (var i = 0; i < data.length; i++) {
+                    var o = document.createElement('option');
+                    o.value = data[i].employee_id;
+                    o.textContent = 'ID ' + data[i].employee_id + ' — ' + data[i].nickname;
+                    if (data[i].employee_role && data[i].employee_role !== 'REGULAR') o.textContent += ' [' + data[i].employee_role + ']';
+                    sel.appendChild(o);
+                }
+            }).catch(function () { });
+        }
+
+        // ─── Add Manual Attendance ────────────────
+        var maMsg = document.getElementById('maMsg'), maSubmitBtn = document.getElementById('maSubmitBtn');
+        function addManualAttendance() {
+            var eid = document.getElementById('maEmployee').value;
+            var date = document.getElementById('maDate').value;
+            var status = document.getElementById('maStatus').value;
+            var reason = document.getElementById('maReason').value.trim();
+            var timeIn = document.getElementById('maTimeIn').value;
+            var timeOut = document.getElementById('maTimeOut').value;
+            if (!eid) { showMsg(maMsg, 'Select an employee.', 'error'); return }
+            if (!date) { showMsg(maMsg, 'Select a date.', 'error'); return }
+            maSubmitBtn.disabled = true; maSubmitBtn.textContent = 'Submitting...';
+            var fd = new FormData();
+            fd.append('employee_id', eid); fd.append('attendance_date', date); fd.append('duty_status', status);
+            fd.append('duty_reason', reason); fd.append('time_in', timeIn); fd.append('time_out', timeOut);
+            fd.append('admin_notes', 'Entered by admin');
+            fetch('api/manual_attendance.php', { method: 'POST', body: fd })
+                .then(function (r) { return r.json() }).then(function (d) {
+                    maSubmitBtn.disabled = false; maSubmitBtn.textContent = 'Submit Manual Attendance';
+                    if (d.success) { showMsg(maMsg, '✅ ' + d.message, 'success'); document.getElementById('maReason').value = ''; loadManualRecords() }
+                    else showMsg(maMsg, '❌ ' + d.message, 'error');
+                }).catch(function (e) { maSubmitBtn.disabled = false; maSubmitBtn.textContent = 'Submit Manual Attendance'; showMsg(maMsg, '❌ ' + e, 'error') });
+        }
+
+        // ─── Load Manual Records ──────────────────
+        var maTableBody = document.getElementById('maTableBody'), maCount = document.getElementById('maCount'), maTableStatus = document.getElementById('maTableStatus');
+        function loadManualRecords() {
+            fetch('api/manual_attendance.php').then(function (r) { return r.json() }).then(function (d) {
+                if (!d.success) return;
+                maCount.textContent = d.count;
+                if (d.count === 0) { maTableBody.innerHTML = ''; maTableStatus.textContent = 'No manual attendance records yet.'; maTableStatus.style.display = 'block'; return }
+                maTableStatus.style.display = 'none'; maTableBody.innerHTML = '';
+                var statusLabels = { 'ON_FIELD_DUTY': '🚛 Field Duty', 'COMPANY_TASK': '🏢 Company Task', 'OFFICIAL_BUSINESS': '💼 Official Business', 'LATE_EXCUSED': '⏰ Late Excused', 'ADMIN_OVERRIDE': '🔑 Admin Override' };
+                var statusClasses = { 'ON_FIELD_DUTY': 'duty-field', 'COMPANY_TASK': 'duty-task', 'OFFICIAL_BUSINESS': 'duty-official', 'LATE_EXCUSED': 'duty-excused', 'ADMIN_OVERRIDE': 'duty-override' };
+                for (var i = 0; i < d.data.length; i++) {
+                    var r = d.data[i], tr = document.createElement('tr');
+                    tr.innerHTML = '<td style="font-weight:700">' + esc(r.nickname) + '<br><small style="color:#a0bba6">ID ' + r.employee_id + '</small></td>'
+                        + '<td>' + formatDate(r.attendance_date) + '</td>'
+                        + '<td><span class="duty-badge ' + (statusClasses[r.duty_status] || '') + '">' + (statusLabels[r.duty_status] || r.duty_status) + '</span></td>'
+                        + '<td style="font-size:12px">' + (r.time_in ? formatTime(r.time_in) : '—') + ' → ' + (r.time_out ? formatTime(r.time_out) : '—') + '</td>'
+                        + '<td style="font-size:12px;max-width:180px;word-wrap:break-word">' + esc(r.duty_reason || '—') + '</td>'
+                        + '<td style="text-align:right"><button class="btn-sm btn-del" onclick="requestDelete(' + r.id + ',\'' + esc(r.nickname) + '\')">🗑️ Del</button></td>';
+                    maTableBody.appendChild(tr);
+                }
+            }).catch(function () { });
+        }
+
+        // ─── Load Roles ───────────────────────────
+        var roleTableBody = document.getElementById('roleTableBody'), roleCount = document.getElementById('roleCount');
+        function loadRoles() {
+            fetch('api/employee_roles.php').then(function (r) { return r.json() }).then(function (d) {
+                if (!d.success) return;
+                roleCount.textContent = d.count; roleTableBody.innerHTML = '';
+                var roleClasses = { 'REGULAR': 'role-regular', 'FIELD': 'role-field', 'DRIVER': 'role-driver', 'FLEXIBLE': 'role-flexible' };
+                var roles = ['REGULAR', 'FIELD', 'DRIVER', 'FLEXIBLE'];
+                for (var i = 0; i < d.data.length; i++) {
+                    var e = d.data[i], tr = document.createElement('tr');
+                    var selectHtml = '<select class="form-control form-control-sm" style="border-radius:10px;padding:6px 10px;font-size:12px;font-weight:700;font-family:Outfit,sans-serif;max-width:160px;display:inline-block" onchange="changeRole(' + e.employee_id + ',this.value)">';
+                    for (var j = 0; j < roles.length; j++) {
+                        selectHtml += '<option value="' + roles[j] + '"' + (roles[j] === e.employee_role ? ' selected' : '') + '>' + roles[j] + '</option>';
+                    }
+                    selectHtml += '</select>';
+                    tr.innerHTML = '<td style="font-weight:700">' + e.employee_id + '</td>'
+                        + '<td style="font-weight:700">' + esc(e.nickname) + '</td>'
+                        + '<td><span class="role-badge ' + (roleClasses[e.employee_role] || 'role-regular') + '">' + e.employee_role + '</span></td>'
+                        + '<td style="text-align:right">' + selectHtml + '</td>';
+                    roleTableBody.appendChild(tr);
+                }
+            }).catch(function () { });
+        }
+
+        function changeRole(eid, role) {
+            fetch('api/employee_roles.php', { method: 'PUT', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'employee_id=' + eid + '&employee_role=' + role })
+                .then(function (r) { return r.json() }).then(function (d) {
+                    if (d.success) { showMsg(maMsg, '✅ ' + d.message, 'success'); loadRoles(); loadEmployees() }
+                    else showMsg(maMsg, '❌ ' + d.message, 'error');
+                }).catch(function (e) { showMsg(maMsg, '❌ ' + e, 'error') });
+        }
+
+        // ─── History ──────────────────────────────
+        var histTableBody = document.getElementById('histTableBody'), histCount = document.getElementById('histCount'), histStatus = document.getElementById('histStatus');
+        function loadHistory() {
+            fetch('api/manual_attendance.php').then(function (r) { return r.json() }).then(function (d) {
+                if (!d.success) return;
+                histCount.textContent = d.count;
+                if (d.count === 0) { histTableBody.innerHTML = ''; histStatus.textContent = 'No records.'; histStatus.style.display = 'block'; return }
+                histStatus.style.display = 'none'; histTableBody.innerHTML = '';
+                var statusLabels = { 'ON_FIELD_DUTY': '🚛 Field Duty', 'COMPANY_TASK': '🏢 Company Task', 'OFFICIAL_BUSINESS': '💼 Official Business', 'LATE_EXCUSED': '⏰ Late Excused', 'ADMIN_OVERRIDE': '🔑 Admin Override' };
+                var statusClasses = { 'ON_FIELD_DUTY': 'duty-field', 'COMPANY_TASK': 'duty-task', 'OFFICIAL_BUSINESS': 'duty-official', 'LATE_EXCUSED': 'duty-excused', 'ADMIN_OVERRIDE': 'duty-override' };
+                for (var i = 0; i < d.data.length; i++) {
+                    var r = d.data[i], tr = document.createElement('tr');
+                    tr.innerHTML = '<td style="font-weight:700">' + esc(r.nickname) + '</td>'
+                        + '<td>' + formatDate(r.attendance_date) + '</td>'
+                        + '<td><span class="duty-badge ' + (statusClasses[r.duty_status] || '') + '">' + (statusLabels[r.duty_status] || r.duty_status) + '</span></td>'
+                        + '<td style="font-size:12px">' + (r.time_in || '—') + '</td>'
+                        + '<td style="font-size:12px">' + (r.time_out || '—') + '</td>'
+                        + '<td style="font-size:12px;max-width:140px;word-wrap:break-word">' + esc(r.duty_reason || '—') + '</td>'
+                        + '<td style="font-size:12px">' + esc(r.admin_notes || '—') + '</td>'
+                        + '<td style="font-size:11px;color:#a0bba6">' + r.created_at + '</td>';
+                    histTableBody.appendChild(tr);
+                }
+            }).catch(function () { });
+        }
+
+        // ─── Delete ───────────────────────────────
+        var pendingDeleteId = null;
+        function requestDelete(id, name) { pendingDeleteId = id; document.getElementById('confirmText').textContent = 'Delete record for ' + name + '?'; document.getElementById('confirmOverlay').classList.add('show') }
+        function cancelConfirm() { pendingDeleteId = null; document.getElementById('confirmOverlay').classList.remove('show') }
+        function doConfirm() {
+            if (!pendingDeleteId) return;
+            document.getElementById('confirmOverlay').classList.remove('show');
+            fetch('api/manual_attendance.php?id=' + pendingDeleteId, { method: 'DELETE' }).then(function (r) { return r.json() }).then(function (d) {
+                pendingDeleteId = null;
+                if (d.success) { showMsg(maMsg, '🗑️ Deleted.', 'success'); loadManualRecords() }
+                else showMsg(maMsg, '❌ ' + d.message, 'error');
+            }).catch(function (e) { pendingDeleteId = null; showMsg(maMsg, '❌ ' + e, 'error') });
+        }
+
+        // ─── Helpers ──────────────────────────────
+        function showMsg(el, msg, type) { el.textContent = msg; el.className = 'msg ' + type; setTimeout(function () { el.textContent = '' }, 4000) }
+        function esc(s) { var d = document.createElement('div'); d.appendChild(document.createTextNode(s)); return d.innerHTML }
+        function formatDate(d) { var dt = new Date(d + 'T00:00:00'); return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) }
+        function formatTime(t) { if (!t) return '—'; var parts = t.split(' '); return parts.length > 1 ? parts[1] : t }
+    </script>
+</body>
+
+</html>
