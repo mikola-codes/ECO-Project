@@ -72,9 +72,10 @@ if ($finger_index >= 0 && $finger_index <= 9) {
         $fingerprint_data = trim(shell_exec('"' . $scanner_path . '" enroll'));
 
         if (empty($fingerprint_data) || strpos($fingerprint_data, 'ERROR') === 0) {
+            $error_detail = empty($fingerprint_data) ? "No device detected." : str_replace('ERROR:', '', $fingerprint_data);
             echo json_encode([
                 "success" => false, 
-                "message" => "Scanner error on " . $finger_names[$finger_index] . ": " . $fingerprint_data
+                "message" => "Hardware Error: " . $error_detail . " Please ensure the scanner is plugged in."
             ]);
             exit;
         }
@@ -178,20 +179,20 @@ for ($i = 0; $i < 10; $i++) {
     $fingers[] = $data;
 }
 
-// Require at least 1 real fingerprint
-if ($real_count === 0) {
-    echo json_encode(["success" => false, "message" => "At least 1 fingerprint is required. Cannot skip all 10."]);
-    exit;
-}
+if ($real_count === 0) { echo json_encode(["success" => false, "message" => "You must successfully scan at least 1 finger to register an identity. You cannot skip all 10."]); exit; }
+
+$email = trim($_POST['email'] ?? '');
+$email = empty($email) ? null : $email;
 
 // --- Insert into fingerprints table (prepared statement) ---
-$sql = "INSERT INTO fingerprints (nickname, right_thumb, right_index_f, right_middle, right_ring, right_pinky, left_thumb, left_index_f, left_middle, left_ring, left_pinky) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+$sql = "INSERT INTO fingerprints (nickname, right_thumb, right_index_f, right_middle, right_ring, right_pinky, left_thumb, left_index_f, left_middle, left_ring, left_pinky, email) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 $stmt = mysqli_prepare($connection, $sql);
-mysqli_stmt_bind_param($stmt, "sssssssssss", 
+mysqli_stmt_bind_param($stmt, "ssssssssssss", 
     $nickname,
     $fingers[0], $fingers[1], $fingers[2], $fingers[3], $fingers[4],
-    $fingers[5], $fingers[6], $fingers[7], $fingers[8], $fingers[9]
+    $fingers[5], $fingers[6], $fingers[7], $fingers[8], $fingers[9],
+    $email
 );
 
 if (!mysqli_stmt_execute($stmt)) {
@@ -212,3 +213,7 @@ echo json_encode([
 
 mysqli_close($connection);
 ?>
+
+
+
+

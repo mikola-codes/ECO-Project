@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECOZONE - Identity Enrollment</title>
+    <meta name="description" content="ECOZONE Identity Enrollment">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --surface: rgba(255, 255, 255, 0.7);
+            --surface-glass: rgba(255, 255, 255, 0.5);
+            --brand: #10b981;
+            --brand-dark: #059669;
+            --brand-glow: rgba(16, 185, 129, 0.25);
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --border: rgba(0, 0, 0, 0.08);
+            --danger: #ef4444;
+        }
+        [data-theme="dark"] {
+            --bg: #09090b;
+            --surface: rgba(24, 24, 27, 0.6);
+            --surface-glass: rgba(24, 24, 27, 0.5);
+            --brand: #34d399;
+            --brand-dark: #10b981;
+            --brand-glow: rgba(52, 211, 153, 0.15);
+            --text-main: #f4f4f5;
+            --text-muted: #a1a1aa;
+            --border: rgba(255, 255, 255, 0.06);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg); color: var(--text-main); font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Ambient Background */
+        .ambient-bg {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 0; overflow: hidden; pointer-events: none;
+        }
+        .ambient-blob {
+            position: absolute; filter: blur(100px); opacity: 0.12; border-radius: 50%;
+            animation: ambientFloat 20s infinite ease-in-out alternate;
+        }
+        .ambient-blob-1 { top: -10%; right: -10%; width: 50vw; height: 50vw; background: var(--brand); }
+        .ambient-blob-2 { bottom: -20%; left: -10%; width: 40vw; height: 40vw; background: #0ea5e9; animation-delay: -5s; }
+        [data-theme="dark"] .ambient-blob { opacity: 0.05; }
+        @keyframes ambientFloat {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(-50px, 50px) scale(1.1); }
+        }
+
+        .ambient-core {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 80vw; height: 80vw; max-width: 800px; max-height: 800px;
+            background: radial-gradient(circle, var(--brand-glow) 0%, transparent 60%);
+            filter: blur(80px); opacity: 0.5; z-index: 1; pointer-events: none;
+        }
+
+        /* Navbar */
+        nav {
+            position: fixed; top: 0; width: 100%; height: 80px; z-index: 1000;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 40px; backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            background: rgba(255,255,255,0.8); border-bottom: 1px solid var(--border);
+        }
+        [data-theme="dark"] nav { background: rgba(9,9,11,0.8); }
+        .nav-logo { width: 32px; height: 32px; border-radius: 8px; }
+        .nav-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text-main); font-weight: 800; font-size: 18px; letter-spacing: 0.05em; }
+        .nav-actions { display: flex; align-items: center; gap: 12px; }
+        .nav-actions a {
+            color: var(--text-main); text-decoration: none; font-size: 14px; font-weight: 600;
+            padding: 10px 24px; background: rgba(0,0,0,0.05); border: 1px solid var(--border);
+            border-radius: 100px; transition: all 0.3s;
+        }
+        .nav-actions a:hover { background: var(--brand); color: #fff; transform: scale(1.05); }
+        [data-theme="dark"] .nav-actions a { background: rgba(255,255,255,0.05); }
+        .theme-toggle {
+            background: transparent; border: 1px solid var(--border); border-radius: 100px;
+            padding: 8px 16px; cursor: pointer; color: var(--text-main); font-size: 16px; transition: all 0.3s;
+        }
+        .theme-toggle:hover { background: var(--brand-glow); }
+
+        /* Main Layout */
+        .kiosk-main {
+            flex: 1; display: flex; align-items: center; justify-content: center;
+            position: relative; padding: 120px 24px 40px; overflow-y: auto;
+        }
+
+        /* Card */
+        .kiosk-card {
+            position: relative; z-index: 10; width: 100%; max-width: 600px; text-align: center;
+            padding: 48px; border-radius: 28px;
+            background: var(--surface); border: 1px solid var(--border);
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.03);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
+        }
+        [data-theme="dark"] .kiosk-card { box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+
+        .kiosk-title {
+            font-size: clamp(28px, 4vw, 36px); font-weight: 800;
+            letter-spacing: -0.04em; line-height: 1.1; margin-bottom: 12px;
+            background: linear-gradient(135deg, #059669 0%, #34d399 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .kiosk-desc {
+            font-size: 16px; color: var(--text-muted);
+            font-weight: 500; line-height: 1.6; margin-bottom: 32px;
+        }
+
+        /* Inputs */
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-label { display: block; font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; letter-spacing: 0.05em; text-transform: uppercase; padding-left: 16px; }
+        .input-premium {
+            width: 100%; padding: 16px 24px; border-radius: 100px;
+            background: rgba(0,0,0,0.03); border: 1px solid var(--border);
+            font-size: 16px; font-weight: 600; font-family: 'Plus Jakarta Sans', sans-serif;
+            color: var(--text-main); transition: all 0.3s;
+            outline: none;
+        }
+        .input-premium:focus { border-color: var(--brand); background: var(--brand-glow); }
+        [data-theme="dark"] .input-premium { background: rgba(255,255,255,0.05); color: #fff; }
+
+        /* Buttons */
+        .btn-kiosk {
+            background: var(--text-main); color: #fff; border: none;
+            padding: 16px 32px; border-radius: 100px; font-size: 15px; font-weight: 700;
+            cursor: pointer; transition: all 0.3s; display: inline-flex;
+            align-items: center; justify-content: center; gap: 8px; width: 100%;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .btn-kiosk:hover:not(:disabled) { transform: scale(1.02); background: var(--brand); color: #fff !important; border-color: var(--brand) !important; }
+        .btn-kiosk:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-kiosk-outline { background: transparent; color: var(--text-main); border: 2px solid var(--text-main); }
+        [data-theme="dark"] .btn-kiosk:not(.btn-kiosk-outline) { background: #f4f4f5; color: #09090b; }
+        [data-theme="dark"] .btn-kiosk-outline { border-color: #f4f4f5; color: #f4f4f5; }
+
+        /* Progress Bar */
+        .progress-header { display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; margin-bottom: 12px; color: var(--text-main); }
+        .progress-wrap { width: 100%; height: 8px; background: rgba(0,0,0,0.05); border-radius: 4px; overflow: hidden; margin-bottom: 32px; }
+        [data-theme="dark"] .progress-wrap { background: rgba(255,255,255,0.1); }
+        .progress-fill { height: 100%; background: var(--brand); width: 0%; transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+
+        /* Finger Grid */
+        .hand-section {
+            border: 1px solid var(--border); padding: 20px; border-radius: 20px;
+            margin-bottom: 16px; background: rgba(0,0,0,0.01); text-align: left;
+        }
+        [data-theme="dark"] .hand-section { background: rgba(255,255,255,0.02); }
+        .hand-title { font-size: 12px; font-weight: 800; color: var(--text-muted); margin-bottom: 12px; letter-spacing: 0.05em; }
+        
+        .fingers-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+        .finger-slot {
+            background: rgba(0,0,0,0.04); border: 1px solid transparent;
+            border-radius: 14px; padding: 12px 0; text-align: center;
+            transition: all 0.3s; display: flex; flex-direction: column; align-items: center; gap: 4px;
+        }
+        [data-theme="dark"] .finger-slot { background: rgba(255,255,255,0.06); }
+        
+        .finger-num { font-size: 16px; font-weight: 800; color: var(--text-main); }
+        .finger-name { font-size: 11px; font-weight: 600; color: var(--text-muted); }
+        
+        .finger-slot.active {
+            background: var(--brand-glow); border-color: var(--brand);
+            transform: translateY(-2px); box-shadow: 0 4px 12px rgba(16,185,129,0.15);
+        }
+        .finger-slot.active .finger-num, .finger-slot.active .finger-name { color: var(--brand-dark); }
+        [data-theme="dark"] .finger-slot.active .finger-num, [data-theme="dark"] .finger-slot.active .finger-name { color: var(--brand); }
+
+        .finger-slot.completed {
+            background: var(--brand); border-color: var(--brand);
+        }
+        .finger-slot.completed .finger-num, .finger-slot.completed .finger-name { color: #fff; }
+
+        .fmsg { margin-top: 16px; font-size: 14px; font-weight: 600; min-height: 20px; }
+
+    </style>
+</head>
+<body>
+    <div class="ambient-bg">
+        <div class="ambient-blob ambient-blob-1"></div>
+        <div class="ambient-blob ambient-blob-2"></div>
+    </div>
+
+    <nav>
+        <a href="index.html" class="nav-brand">
+            <img src="assets/images/logo.jpg" alt="ECOZONE" class="nav-logo">
+            ECOZONE
+        </a>
+        <div class="nav-actions">
+            <a href="index.html">← Back to Kiosk</a>
+            <button class="theme-toggle" id="themeToggle">~</button>
+        </div>
+    </nav>
+
+    <main class="kiosk-main">
+        <div class="ambient-core"></div>
+
+        <div class="kiosk-card">
+            <h1 class="kiosk-title">Identity Enrollment</h1>
+            <p class="kiosk-desc">Register your identity into the secure database.</p>
+
+            <!-- STEP 1: Details -->
+            <div id="step1">
+                <div class="input-group">
+                    <label class="input-label">Nickname (Required)</label>
+                    <input type="text" id="nickname" class="input-premium" placeholder="e.g. John Doe">
+                </div>
+                <div class="input-group" style="margin-bottom: 32px;">
+                    <label class="input-label">Email (Optional)</label>
+                    <input type="email" id="enrollEmail" class="input-premium" placeholder="user@ecozone.com">
+                </div>
+                
+                <button id="startEnrollBtn" class="btn-kiosk">Initialize Sequence</button>
+            </div>
+
+            <!-- STEP 2: Fingerprints -->
+            <div id="step2" style="display:none;">
+                <div class="progress-header">
+                    <span>SCANNING PROGRESS</span>
+                    <span id="progressText" style="color: var(--brand);">0/10</span>
+                </div>
+                <div class="progress-wrap"><div class="progress-fill" id="progressBar"></div></div>
+
+                <div class="hand-section">
+                    <div class="hand-title">LEFT HAND</div>
+                    <div class="fingers-grid">
+                        <div class="finger-slot" id="slot-9"><span class="finger-num">10</span><span class="finger-name">PNK</span></div>
+                        <div class="finger-slot" id="slot-8"><span class="finger-num">9</span><span class="finger-name">RNG</span></div>
+                        <div class="finger-slot" id="slot-7"><span class="finger-num">8</span><span class="finger-name">MID</span></div>
+                        <div class="finger-slot" id="slot-6"><span class="finger-num">7</span><span class="finger-name">IND</span></div>
+                        <div class="finger-slot" id="slot-5"><span class="finger-num">6</span><span class="finger-name">THM</span></div>
+                    </div>
+                </div>
+
+                <div class="hand-section" style="margin-bottom: 32px;">
+                    <div class="hand-title">RIGHT HAND</div>
+                    <div class="fingers-grid">
+                        <div class="finger-slot" id="slot-0"><span class="finger-num">1</span><span class="finger-name">THM</span></div>
+                        <div class="finger-slot" id="slot-1"><span class="finger-num">2</span><span class="finger-name">IND</span></div>
+                        <div class="finger-slot" id="slot-2"><span class="finger-num">3</span><span class="finger-name">MID</span></div>
+                        <div class="finger-slot" id="slot-3"><span class="finger-num">4</span><span class="finger-name">RNG</span></div>
+                        <div class="finger-slot" id="slot-4"><span class="finger-num">5</span><span class="finger-name">PNK</span></div>
+                    </div>
+                </div>
+
+                                <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+                    <button id="backFingerBtn" class="btn-kiosk btn-kiosk-outline" style="width: auto; padding: 16px 24px;" disabled>PREV</button>
+                    <button id="scanFingerBtn" class="btn-kiosk">SCAN FINGER</button>
+                    <button id="skipFingerBtn" class="btn-kiosk btn-kiosk-outline" style="width: auto; padding: 16px 24px;">SKIP</button>
+                </div>
+                <button id="earlySubmitBtn" class="btn-kiosk" style="background: var(--brand); border: none; display: none;">FINISH & SAVE</button>
+                
+                <div id="enrollMessage" class="fmsg"></div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Theme Toggle Logic
+        var themeToggle = document.getElementById('themeToggle');
+        var savedTheme = localStorage.getItem('eco_theme');
+        if (savedTheme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            themeToggle.textContent = '~';
+        }
+        themeToggle.addEventListener('click', function () {
+            if (document.documentElement.getAttribute('data-theme') === 'dark') {
+                document.documentElement.removeAttribute('data-theme');
+                localStorage.setItem('eco_theme', 'light');
+                themeToggle.textContent = '~';
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('eco_theme', 'dark');
+                themeToggle.textContent = '~';
+            }
+        });
+
+        // Enrollment Logic
+        var currentFingerIndex = 0;
+        var currentNickname = "", currentEmail = "";
+        var collectedFingers = [];
+        var fingerNames = ["Right Thumb","Right Index","Right Middle","Right Ring","Right Pinky","Left Thumb","Left Index","Left Middle","Left Ring","Left Pinky"];
+
+        var startEnrollBtn = document.getElementById("startEnrollBtn");
+        var scanFingerBtn = document.getElementById("scanFingerBtn");
+                var skipFingerBtn = document.getElementById("skipFingerBtn");
+        var backFingerBtn = document.getElementById("backFingerBtn");
+        var earlySubmitBtn = document.getElementById("earlySubmitBtn");
+        var enrollMessage = document.getElementById("enrollMessage");
+
+        if(earlySubmitBtn) {
+            earlySubmitBtn.onclick = function() {
+                // Auto-skip remaining fingers
+                while(currentFingerIndex < 10) {
+                    collectedFingers.push("SKIP");
+                    currentFingerIndex++;
+                }
+                updateEnrollUI();
+            };
+        }
+
+        if(startEnrollBtn) {
+            startEnrollBtn.addEventListener("click", function() {
+                var nn = document.getElementById("nickname").value.trim();
+                if(!nn) { 
+                    showFeedbackModal('error', 'Missing Information', 'Please enter a nickname to begin registration.', false);
+                    return; 
+                }
+                currentNickname = nn; 
+                currentEmail = document.getElementById("enrollEmail").value.trim();
+                
+                document.getElementById("step1").style.display = "none"; 
+                document.getElementById("step2").style.display = "block";
+                currentFingerIndex = 0; 
+                collectedFingers = []; 
+                updateEnrollUI();
+            });
+        }
+
+        if(skipFingerBtn) skipFingerBtn.onclick = function() { processFingerScan(true); };
+        if(backFingerBtn) backFingerBtn.onclick = function() {
+            if(currentFingerIndex > 0) { currentFingerIndex--; collectedFingers.pop(); updateEnrollUI(); }
+        };
+
+        function updateEnrollUI() {
+            document.getElementById("progressText").textContent = currentFingerIndex + "/10";
+            document.getElementById("progressBar").style.width = (currentFingerIndex * 10) + "%";
+            backFingerBtn.disabled = (currentFingerIndex === 0);
+            
+            for(var i=0; i<10; i++) {
+                var slot = document.getElementById("slot-" + i);
+                if(slot) {
+                    slot.classList.remove("active"); slot.classList.remove("completed");
+                    if(i < currentFingerIndex) {
+                        slot.classList.add("completed");
+                    } else if (i === currentFingerIndex) {
+                        slot.classList.add("active");
+                    }
+                }
+            }
+            
+            enrollMessage.innerHTML = "";
+                        if(currentFingerIndex < 10) {
+                scanFingerBtn.textContent = "SCAN " + fingerNames[currentFingerIndex].toUpperCase();
+                scanFingerBtn.onclick = function() { processFingerScan(false); };
+                
+                // Show Finish button if at least one finger is scanned
+                var hasScanned = collectedFingers.some(f => f !== "SKIP");
+                if (hasScanned) {
+                    earlySubmitBtn.style.display = "block";
+                } else {
+                    earlySubmitBtn.style.display = "none";
+                }
+            } else {
+                earlySubmitBtn.style.display = "none";
+                scanFingerBtn.textContent = "SAVING IDENTITY...";
+                finalizeEnrollment();
+            }
+        }
+
+        function processFingerScan(isSkip) {
+            if(currentFingerIndex >= 10) return;
+            scanFingerBtn.disabled = true; skipFingerBtn.disabled = true; backFingerBtn.disabled = true;
+            
+            if(isSkip) { 
+                collectedFingers.push("SKIP"); 
+                currentFingerIndex++; 
+                scanFingerBtn.disabled = false; skipFingerBtn.disabled = false; 
+                updateEnrollUI(); 
+                return; 
+            }
+            
+            scanFingerBtn.textContent = "SCANNING...";
+            enrollMessage.innerHTML = "<span style='color:var(--text-muted)'>Please place finger on scanner...</span>";
+            
+            var fd = new FormData(); 
+            fd.append("nickname", currentNickname);
+            fd.append("finger_index", currentFingerIndex); 
+            fd.append("fingerprint_data", "");
+            for(var i=0; i<collectedFingers.length; i++) fd.append("session_finger_" + i, collectedFingers[i]);
+            
+            fetch("api/enroll.php", { method: "POST", body: fd })
+                .then(r => r.json())
+                .then(d => {
+                    scanFingerBtn.disabled = false; skipFingerBtn.disabled = false;
+                    if(d.success) { 
+                        collectedFingers.push(d.finger_data); 
+                        currentFingerIndex++; 
+                        updateEnrollUI(); 
+                        
+                        showFeedbackModal('success', 'Success!', `Successfully scanned ${fingerNames[currentFingerIndex-1]}`, true);
+                    } else { 
+                        let errorText = d.message;
+                        if (errorText.includes("No device detected")) {
+                            errorText = "No device found. Please attach the device to the computer.";
+                        }
+                        showFeedbackModal('error', 'Device Not Found', errorText, false);
+                        scanFingerBtn.textContent = "RETRY SCAN"; 
+                        backFingerBtn.disabled = (currentFingerIndex === 0); 
+                    }
+                }).catch(e => {
+                    scanFingerBtn.disabled = false; skipFingerBtn.disabled = false; backFingerBtn.disabled = (currentFingerIndex === 0);
+                    
+                    let errStr = e.toString();
+                    if (errStr.includes('Failed to fetch') || errStr.includes('NetworkError') || errStr.includes('Unexpected token')) {
+                        showFeedbackModal('error', 'Device Not Found', "No device found. Please attach the device to the computer.", false);
+                    } else {
+                        showFeedbackModal('error', 'System Error', e.message, false);
+                    }
+                    
+                    scanFingerBtn.textContent = "RETRY SCAN";
+                });
+        }
+
+          function finalizeEnrollment() {
+              var fd = new FormData();
+              fd.append("nickname", currentNickname); fd.append("email", currentEmail);
+              for(var i=0; i<10; i++) fd.append("finger_" + i, collectedFingers[i] || "SKIP");
+              
+              fetch("api/enroll.php", { method: "POST", body: fd })
+                  .then(r => r.json())
+                  .then(d => {
+                      if(d.success) {
+                          showFeedbackModal('success', 'Identity Saved!', d.message, true);
+                          setTimeout(() => { 
+                              window.location.href = "index.html"; 
+                          }, 2500);
+                      } else {
+                          scanFingerBtn.disabled = false; 
+                          scanFingerBtn.textContent = "RETRY SAVE"; 
+                          scanFingerBtn.onclick = finalizeEnrollment;
+                          
+                          if (d.message.includes("at least 1 finger")) {
+                              document.getElementById('errorModal').style.display = 'flex';
+                          } else {
+                              showFeedbackModal('error', 'Registration Failed', d.message, false);
+                          }
+                      }
+                  }).catch(e => {
+                      showFeedbackModal('error', 'System Error', 'Connection Error. Ensure server is running.', false);
+                      scanFingerBtn.disabled = false; 
+                      scanFingerBtn.textContent = "RETRY SAVE"; 
+                      scanFingerBtn.onclick = finalizeEnrollment;
+                  });
+          }
+
+        function showFeedbackModal(type, title, text, autoClose) {
+            var modal = document.getElementById('scanFeedbackModal');
+            var card = document.getElementById('scanFeedbackCard');
+            var icon = document.getElementById('scanFeedbackIcon');
+            var titleEl = document.getElementById('scanFeedbackTitle');
+            var textEl = document.getElementById('scanFeedbackText');
+            var btn = document.getElementById('scanFeedbackBtn');
+            
+            if (type === 'success') {
+                icon.innerHTML = '?';
+                card.style.border = '1px solid rgba(34, 197, 94, 0.3)';
+                btn.style.background = 'var(--brand)';
+                btn.style.display = 'none'; // hide button for auto-close
+            } else {
+                icon.innerHTML = '?';
+                card.style.border = '1px solid rgba(239, 68, 68, 0.4)';
+                btn.style.background = 'var(--surface-light)';
+                btn.style.color = '#fff';
+                btn.style.display = 'block';
+            }
+            
+            titleEl.textContent = title;
+            textEl.textContent = text;
+            
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                modal.style.opacity = '1';
+                card.style.transform = 'scale(1)';
+            }, 10);
+            
+            if (autoClose) {
+                setTimeout(() => {
+                    closeFeedbackModal();
+                }, 2000);
+            }
+        }
+        
+        function closeFeedbackModal() {
+            var modal = document.getElementById('scanFeedbackModal');
+            var card = document.getElementById('scanFeedbackCard');
+            modal.style.opacity = '0';
+            card.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
+        }
+
+        function restartScanning() {
+            document.getElementById('errorModal').style.display = 'none';
+            currentFingerIndex = 0;
+            collectedFingers = [];
+            updateEnrollUI();
+        }
+    </script>
+    <!-- Scan Feedback Modal -->
+    <div id="scanFeedbackModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease;">
+        <div id="scanFeedbackCard" class="kiosk-card" style="max-width: 400px; padding: 40px 32px; background: rgba(20, 20, 20, 0.95); box-shadow: 0 24px 64px rgba(0,0,0,0.5); border-radius: 24px; text-align: center; transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+            <div id="scanFeedbackIcon" style="font-size: 48px; margin-bottom: 20px;"></div>
+            <h2 id="scanFeedbackTitle" style="margin: 0 0 12px 0; color: #fff; font-size: 24px; font-weight: 700;"></h2>
+            <p id="scanFeedbackText" style="color: rgba(255,255,255,0.7); line-height: 1.5; margin: 0 0 24px 0; font-size: 15px;"></p>
+            <button id="scanFeedbackBtn" class="btn-kiosk" onclick="closeFeedbackModal()" style="background: var(--brand); color: #000; font-weight: 600; border: none; width: 100%;">OK</button>
+        </div>
+    </div>
+    <!-- Custom Error Modal -->
+    <div id="errorModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(12px); z-index: 9999; align-items: center; justify-content: center;">
+        <div class="kiosk-card" style="max-width: 450px; padding: 48px 40px; border: 1px solid rgba(239, 68, 68, 0.4); background: rgba(15, 15, 15, 0.95); box-shadow: 0 24px 64px rgba(239, 68, 68, 0.15); border-radius: 24px;">
+            <div style="width: 80px; height: 80px; border-radius: 50%; background: rgba(239, 68, 68, 0.15); color: var(--danger); display: flex; align-items: center; justify-content: center; font-size: 36px; margin: 0 auto 32px auto; box-shadow: 0 0 32px rgba(239,68,68,0.2);">
+                ?
+            </div>
+            <h2 style="margin: 0 0 16px 0; color: #fff; font-size: 28px; text-align: center; font-weight: 700; letter-spacing: -0.5px;">Registration Failed</h2>
+            <p style="color: rgba(255,255,255,0.7); line-height: 1.6; margin: 0 0 40px 0; text-align: center; font-size: 16px;">
+                You cannot skip all 10 fingers. You must successfully scan at least <strong>1 finger</strong> to register an identity.
+            </p>
+            <div style="display: flex; gap: 16px; flex-direction: column;">
+                <button class="btn-kiosk" onclick="restartScanning()" style="background: var(--brand); color: #000; font-weight: 600; border: none;">SCAN AGAIN</button>
+                <button class="btn-kiosk btn-kiosk-outline" onclick="document.getElementById('errorModal').style.display = 'none'" style="border: 1px solid rgba(255,255,255,0.1); background: transparent; color: #fff;">Close</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+
+
+
+

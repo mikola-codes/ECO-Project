@@ -4,7 +4,7 @@ include 'config.php';
 header('Content-Type: application/json');
 
 $stmt = mysqli_prepare($connection, 
-    "SELECT employee_id, nickname, date_registered, employee_role FROM fingerprints ORDER BY employee_id ASC"
+    "SELECT employee_id, nickname, date_registered, employee_role, email FROM fingerprints ORDER BY employee_id ASC"
 );
 mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
@@ -15,7 +15,8 @@ while ($row = mysqli_fetch_assoc($result)) {
         "employee_id"     => $row['employee_id'],
         "nickname"        => $row['nickname'],
         "date_registered" => $row['date_registered'],
-        "employee_role"   => $row['employee_role']
+        "employee_role"   => $row['employee_role'],
+        "email"           => $row['email']
     ];
 }
 

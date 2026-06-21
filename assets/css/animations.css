@@ -1,0 +1,97 @@
+/* ═══ Premium UI-UX Pro Max Animations ═══ */
+
+/* Prevent FOUC by using a js-enabled class (added in head) */
+.js-enabled .feat-card,
+.js-enabled .hiw-card,
+.js-enabled .stat-bento,
+.js-enabled .cta-card,
+.js-enabled .hero-content,
+.js-enabled .hero-visual,
+.js-enabled .section-card,
+.js-enabled .bento-grid > div {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.js-enabled .hero-visual {
+    transition-delay: 150ms;
+}
+
+/* Staggering for lists of cards */
+.js-enabled .features-grid > :nth-child(2) { transition-delay: 100ms; }
+.js-enabled .features-grid > :nth-child(3) { transition-delay: 200ms; }
+.js-enabled .features-grid > :nth-child(4) { transition-delay: 300ms; }
+
+.js-enabled .hiw-grid > :nth-child(1) { transition-delay: 0ms; }
+.js-enabled .hiw-grid > :nth-child(2) { transition-delay: 100ms; }
+.js-enabled .hiw-grid > :nth-child(3) { transition-delay: 200ms; }
+.js-enabled .hiw-grid > :nth-child(4) { transition-delay: 300ms; }
+
+.js-enabled .stats-grid > :nth-child(1) { transition-delay: 0ms; }
+.js-enabled .stats-grid > :nth-child(2) { transition-delay: 150ms; }
+.js-enabled .stats-grid > :nth-child(3) { transition-delay: 300ms; }
+
+/* When element comes into viewport */
+.js-enabled .is-visible {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+}
+
+/* ═══ Ambient Background Blobs ═══ */
+.ambient-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+    overflow: hidden;
+    background: transparent;
+    pointer-events: none;
+}
+
+.ambient-blob {
+    position: absolute;
+    filter: blur(100px);
+    opacity: 0.15;
+    border-radius: 50%;
+    animation: ambientFloat 20s infinite ease-in-out alternate;
+}
+
+.ambient-blob-1 {
+    top: -10%;
+    right: -10%;
+    width: 50vw;
+    height: 50vw;
+    background: var(--brand-primary);
+}
+
+.ambient-blob-2 {
+    bottom: -20%;
+    left: -10%;
+    width: 40vw;
+    height: 40vw;
+    background: #0ea5e9;
+    animation-delay: -5s;
+}
+
+[data-theme="dark"] .ambient-blob {
+    opacity: 0.05;
+}
+
+@keyframes ambientFloat {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(-50px, 50px) scale(1.1); }
+}
+
+/* ═══ Hover Elevations ═══ */
+.feat-card:hover, .hiw-card:hover, .stat-bento:hover, .section-card:hover {
+    transform: translateY(-8px) scale(1.01) !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08) !important;
+    border-color: rgba(16, 185, 129, 0.3) !important;
+}
+
+[data-theme="dark"] .feat-card:hover, [data-theme="dark"] .hiw-card:hover, [data-theme="dark"] .stat-bento:hover {
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4) !important;
+}

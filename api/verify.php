@@ -2,6 +2,7 @@
 // verify.php — Compare fingerprint against all 10 columns and log attendance
 include 'config.php';
 require_once 'helpers/holiday.php';
+require_once 'helpers/notifications.php';
 header('Content-Type: application/json');
 
 // Step 1: Export all 10 fingerprints per employee to a temp file
@@ -14,7 +15,7 @@ if (!$result || mysqli_num_rows($result) == 0) {
 }
 
 // Write temp file: employee_id|fmd1|fmd2|...|fmd10
-$temp_file = sys_get_temp_dir() . '/ecozone_fmds.tmp';
+$temp_file = sys_get_temp_dir() . '/ecozone_fmds_' . uniqid() . '.tmp';
 $file_handle = fopen($temp_file, 'w');
 
 $nicknames = []; // Cache nicknames for later
@@ -65,12 +66,14 @@ if (strpos($scanner_output, 'MATCH:') === 0) {
     $today = date("Y-m-d");
 
     // --- Duplicate scan prevention: block re-scan within 60 seconds ---
+    $start_of_day = $today . ' 00:00:00';
+    $end_of_day = $today . ' 23:59:59';
     $dup_stmt = mysqli_prepare($connection, 
         "SELECT log_time FROM attendance_log 
-         WHERE employee_id = ? AND DATE(log_time) = ?
+         WHERE employee_id = ? AND log_time >= ? AND log_time <= ?
          ORDER BY log_time DESC LIMIT 1"
     );
-    mysqli_stmt_bind_param($dup_stmt, "is", $employee_id, $today);
+    mysqli_stmt_bind_param($dup_stmt, "iss", $employee_id, $start_of_day, $end_of_day);
     mysqli_stmt_execute($dup_stmt);
     $dup_result = mysqli_stmt_get_result($dup_stmt);
     $last_log = mysqli_fetch_assoc($dup_result);
@@ -95,9 +98,9 @@ if (strpos($scanner_output, 'MATCH:') === 0) {
     // --- Determine log_type: TIME_IN or TIME_OUT ---
     $count_stmt = mysqli_prepare($connection, 
         "SELECT COUNT(*) AS scan_count FROM attendance_log 
-         WHERE employee_id = ? AND DATE(log_time) = ?"
+         WHERE employee_id = ? AND log_time >= ? AND log_time <= ?"
     );
-    mysqli_stmt_bind_param($count_stmt, "is", $employee_id, $today);
+    mysqli_stmt_bind_param($count_stmt, "iss", $employee_id, $start_of_day, $end_of_day);
     mysqli_stmt_execute($count_stmt);
     $count_result = mysqli_stmt_get_result($count_stmt);
     $count_row = mysqli_fetch_assoc($count_result);
@@ -120,6 +123,9 @@ if (strpos($scanner_output, 'MATCH:') === 0) {
     mysqli_stmt_execute($log_stmt);
     mysqli_stmt_close($log_stmt);
 
+    // --- Late Arrival Notification (Email + SMS) ---
+    checkAndNotifyLate($connection, $employee_id, $nickname, $now, $log_type);
+
     $type_label = ($log_type === 'TIME_IN') ? 'Timed In' : 'Timed Out';
 
     echo json_encode([
@@ -138,7 +144,9 @@ else if ($scanner_output === 'NOMATCH') {
     echo json_encode(["success" => false, "message" => "Fingerprint not recognized"]);
 } 
 else {
-    echo json_encode(["success" => false, "message" => "Scanner status: " . $scanner_output]);
+    // If the scanner executable outputs anything else (or nothing), it usually means the hardware is disconnected.
+    $error_detail = empty($scanner_output) ? "Hardware unavailable" : $scanner_output;
+    echo json_encode(["success" => false, "message" => "No device attached. Please connect the biometric scanner."]);
 }
 
 mysqli_close($connection);

@@ -12,13 +12,15 @@ if (!empty($date_filter)) {
         exit;
     }
 
+    $start_date = $date_filter . ' 00:00:00';
+    $end_date = $date_filter . ' 23:59:59';
     $stmt = mysqli_prepare($connection, 
         "SELECT log_id, employee_id, nickname, log_time, log_type, holiday_flag, holiday_name, duty_status, duty_reason, admin_override 
          FROM attendance_log 
-         WHERE DATE(log_time) = ?
+         WHERE log_time >= ? AND log_time <= ?
          ORDER BY log_time DESC"
     );
-    mysqli_stmt_bind_param($stmt, "s", $date_filter);
+    mysqli_stmt_bind_param($stmt, "ss", $start_date, $end_date);
 } else {
     $stmt = mysqli_prepare($connection, 
         "SELECT log_id, employee_id, nickname, log_time, log_type, holiday_flag, holiday_name, duty_status, duty_reason, admin_override 
