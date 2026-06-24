@@ -18,14 +18,14 @@ if (!empty($date_filter)) {
         "SELECT log_id, employee_id, nickname, log_time, log_type, holiday_flag, holiday_name, duty_status, duty_reason, admin_override 
          FROM attendance_log 
          WHERE log_time >= ? AND log_time <= ?
-         ORDER BY log_time DESC"
+         ORDER BY log_time DESC LIMIT 1000"
     );
     mysqli_stmt_bind_param($stmt, "ss", $start_date, $end_date);
 } else {
     $stmt = mysqli_prepare($connection, 
         "SELECT log_id, employee_id, nickname, log_time, log_type, holiday_flag, holiday_name, duty_status, duty_reason, admin_override 
          FROM attendance_log 
-         ORDER BY log_time DESC"
+         ORDER BY log_time DESC LIMIT 1000"
     );
 }
 
@@ -49,6 +49,6 @@ while ($row = mysqli_fetch_assoc($result)) {
 }
 
 mysqli_stmt_close($stmt);
-echo json_encode($records);
+echo json_encode(["success" => true, "data" => $records]);
 mysqli_close($connection);
 ?>

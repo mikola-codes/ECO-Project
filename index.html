@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -221,7 +221,7 @@
         </a>
         <div class="nav-actions">
             <div id="liveClock" class="nav-clock"></div>
-            <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode"><span id="themeIcon">🌙</span></button>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode"><span id="themeIcon">&#x1F319;</span></button>
             <a href="admin.html">Admin Console</a>
         </div>
     </nav>
@@ -269,7 +269,7 @@
 
         if (localStorage.getItem('eco-theme') === 'dark') {
             html.setAttribute('data-theme', 'dark');
-            if (themeIconEl) themeIconEl.textContent = '☀️';
+            if (themeIconEl) themeIconEl.innerHTML = '&#x2600;';
         }
         if (themeBtn) {
             themeBtn.addEventListener('click', function () {
@@ -277,12 +277,12 @@
                 if (isDark) {
                     html.removeAttribute('data-theme');
                     localStorage.setItem('eco-theme', 'light');
-                    if (themeIconEl) themeIconEl.textContent = '🌙';
-                } else {
+                    if (themeIconEl) themeIconEl.innerHTML = '&#x1F319;';
+        } else {
                     html.setAttribute('data-theme', 'dark');
                     localStorage.setItem('eco-theme', 'dark');
-                    if (themeIconEl) themeIconEl.textContent = '☀️';
-                }
+                    if (themeIconEl) themeIconEl.innerHTML = '&#x2600;';
+        }
             });
         }
 
@@ -465,4 +465,6 @@
     </div>
 </body>
 </html>
+
+
 

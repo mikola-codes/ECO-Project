@@ -1,4 +1,8 @@
 <?php
+define('IN_APP', true);
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 date_default_timezone_set('Asia/Manila');
 
 $database_host     = "localhost";
@@ -16,11 +20,12 @@ $connection = @mysqli_connect(
 
 // Check if the connection worked — return JSON error for API consumers
 if (!$connection) {
+    error_log("Database connection failed: " . mysqli_connect_error());
     header('Content-Type: application/json');
     http_response_code(500);
     echo json_encode([
         "success" => false,
-        "message" => "Database connection failed: " . mysqli_connect_error()
+        "message" => "Database connection error."
     ]);
     exit;
 }

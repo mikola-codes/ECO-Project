@@ -5,57 +5,38 @@ require_once 'helpers/holiday.php';
 require_once 'helpers/notifications.php';
 header('Content-Type: application/json');
 
-// Step 1: Export all 10 fingerprints per employee to a temp file
-$query = "SELECT employee_id, nickname, right_thumb, right_index_f, right_middle, right_ring, right_pinky, left_thumb, left_index_f, left_middle, left_ring, left_pinky FROM fingerprints";
-$result = mysqli_query($connection, $query);
+// IP-based Throttling (Max 1 request per second)
+$ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+$throttle_file = sys_get_temp_dir() . '/ecozone_throttle_' . md5($ip);
+if (file_exists($throttle_file)) {
+    if (time() - file_get_contents($throttle_file) < 1) {
+        http_response_code(429);
+        echo json_encode(["success" => false, "message" => "Too many requests. Please slow down."]);
+        exit;
+    }
+}
+file_put_contents($throttle_file, time());
 
-if (!$result || mysqli_num_rows($result) == 0) {
+require_once 'helpers/fingerprint_cache.php';
+
+// Step 1: Get cached fingerprints
+$cache_file = get_fingerprint_cache_file($connection);
+$nicknames = get_nicknames_cache($connection);
+
+if (empty($nicknames)) {
     echo json_encode(["success" => false, "message" => "No employees registered yet"]);
     exit;
 }
-
-// Write temp file: employee_id|fmd1|fmd2|...|fmd10
-$temp_file = sys_get_temp_dir() . '/ecozone_fmds_' . uniqid() . '.tmp';
-$file_handle = fopen($temp_file, 'w');
-
-$nicknames = []; // Cache nicknames for later
-
-while ($row = mysqli_fetch_assoc($result)) {
-    $eid = $row['employee_id'];
-    $nicknames[$eid] = $row['nickname'];
-
-    $line = $eid
-        . '|' . $row['right_thumb']
-        . '|' . $row['right_index_f']
-        . '|' . $row['right_middle']
-        . '|' . $row['right_ring']
-        . '|' . $row['right_pinky']
-        . '|' . $row['left_thumb']
-        . '|' . $row['left_index_f']
-        . '|' . $row['left_middle']
-        . '|' . $row['left_ring']
-        . '|' . $row['left_pinky']
-        . "\n";
-    
-    fwrite($file_handle, $line);
-}
-fclose($file_handle);
 
 // Step 2: Call the C++ scanner in verify mode
 $scanner_path = realpath(__DIR__ . '/../bin/scanner.exe');
 
 if (!$scanner_path || !file_exists($scanner_path)) {
-    unlink($temp_file);
     echo json_encode(["success" => false, "message" => "Scanner executable not found"]);
     exit;
 }
 
-$scanner_output = trim(shell_exec('"' . $scanner_path . '" verify "' . $temp_file . '"'));
-
-// Clean up temp file
-if (file_exists($temp_file)) {
-    unlink($temp_file);
-}
+$scanner_output = trim(shell_exec('"' . $scanner_path . '" verify "' . $cache_file . '"'));
 
 // Step 3: Handle the scanner output
 if (strpos($scanner_output, 'MATCH:') === 0) {

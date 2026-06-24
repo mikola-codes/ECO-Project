@@ -2,6 +2,18 @@
 include 'config.php';
 header('Content-Type: application/json');
 
+// IP-based Throttling (Max 1 request per second)
+$ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+$throttle_file = sys_get_temp_dir() . '/ecozone_throttle_' . md5($ip);
+if (file_exists($throttle_file)) {
+    if (time() - file_get_contents($throttle_file) < 1) {
+        http_response_code(429);
+        echo json_encode(["success" => false, "message" => "Too many requests. Please slow down."]);
+        exit;
+    }
+}
+file_put_contents($throttle_file, time());
+
 $nickname = trim($_POST['nickname'] ?? '');
 
 // --- Validation ---
@@ -81,23 +93,21 @@ if ($finger_index >= 0 && $finger_index <= 9) {
         }
 
         // --- Duplicate Check Against Existing Fingerprints & Current Session ---
+        require_once 'helpers/fingerprint_cache.php';
+        $base_cache = get_fingerprint_cache_file($connection);
+        $nicknames = get_nicknames_cache($connection);
+
         $temp_file = sys_get_temp_dir() . '/ecozone_enroll_check_' . uniqid() . '.tmp';
-        $file_handle = fopen($temp_file, 'w');
-        $has_data_to_check = false;
-        $nicknames = [];
-
-        $query = "SELECT employee_id, nickname, right_thumb, right_index_f, right_middle, right_ring, right_pinky, left_thumb, left_index_f, left_middle, left_ring, left_pinky FROM fingerprints";
-        $result = mysqli_query($connection, $query);
-
-        if ($result && mysqli_num_rows($result) > 0) {
-            while ($row = mysqli_fetch_assoc($result)) {
-                $eid = $row['employee_id'];
-                $nicknames[$eid] = $row['nickname'];
-                $line = $eid . '|' . $row['right_thumb'] . '|' . $row['right_index_f'] . '|' . $row['right_middle'] . '|' . $row['right_ring'] . '|' . $row['right_pinky'] . '|' . $row['left_thumb'] . '|' . $row['left_index_f'] . '|' . $row['left_middle'] . '|' . $row['left_ring'] . '|' . $row['left_pinky'] . "\n";
-                fwrite($file_handle, $line);
-                $has_data_to_check = true;
-            }
+        
+        // Copy the base cache to a temp file so we can append session fingers
+        if (file_exists($base_cache)) {
+            copy($base_cache, $temp_file);
+            $has_data_to_check = (filesize($temp_file) > 0);
+        } else {
+            $has_data_to_check = false;
         }
+
+        $file_handle = fopen($temp_file, 'a');
 
         // Add fingers from the current ongoing 10-finger session
         $session_line_parts = array_fill(0, 11, '');
@@ -203,6 +213,9 @@ if (!mysqli_stmt_execute($stmt)) {
 
 $employee_id = mysqli_insert_id($connection);
 mysqli_stmt_close($stmt);
+
+require_once 'helpers/fingerprint_cache.php';
+rebuild_fingerprint_cache($connection);
 
 echo json_encode([
     "success"     => true,

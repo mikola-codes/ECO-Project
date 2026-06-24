@@ -1,4 +1,5 @@
 <?php
+if (!defined('IN_APP')) { http_response_code(403); exit('Forbidden'); }
 // api/helpers/notifications.php
 
 // ========================================================================
