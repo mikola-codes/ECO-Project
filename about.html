@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Developers | ECOZONE</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Light Theme Defaults (Same as landing page) */
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --brand: #10b981;
+            --brand-glow: rgba(16, 185, 129, 0.1);
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --border: rgba(0, 0, 0, 0.08);
+            --shadow: 0 20px 40px rgba(0,0,0,0.05);
+        }
+
+        [data-theme="dark"] {
+            /* Dark Theme Overrides */
+            --bg: #09090b;
+            --surface: rgba(24, 24, 27, 0.6);
+            --brand: #34d399;
+            --brand-glow: rgba(52, 211, 153, 0.15);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+            --shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* ═══ Global Nav ═══ */
+        .top-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 1.5rem 4rem;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-bottom: 1px solid var(--border);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+        
+        [data-theme="dark"] .top-nav {
+            background: rgba(9, 9, 11, 0.8);
+        }
+        
+        .back-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-main);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+        }
+        
+        .back-logo:hover {
+            color: var(--brand);
+            transform: translateX(-5px);
+        }
+        
+        .back-logo img {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+        }
+
+        .theme-toggle {
+            background: transparent; border: 1px solid var(--border); border-radius: 100px;
+            padding: 8px 16px; cursor: pointer; color: var(--text-main); font-size: 16px; transition: all 0.3s;
+        }
+        
+        .theme-toggle:hover {
+            background: var(--brand-glow);
+        }
+
+        /* ═══ Main Container ═══ */
+        .about-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 120px 24px 40px;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .about-header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .about-header h1 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: clamp(2.5rem, 4vw, 3.5rem);
+            font-size: clamp(2rem, 3vw, 2.5rem);
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 0.2rem;
+            color: var(--text-main);
+        }
+
+        .about-header p {
+            font-size: 1rem;
+            color: var(--brand);
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        /* ═══ Team Grid (Horizontal Layout) ═══ */
+        .team-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr; /* Places them side by side horizontally */
+            gap: 24px;
+        }
+
+        /* ═══ Team Card Design ═══ */
+        .team-card {
+            display: flex;
+            flex-direction: column;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            padding: 32px;
+            box-shadow: var(--shadow);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            backdrop-filter: blur(20px);
+            position: relative;
+            
+            opacity: 0;
+            animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        
+        .team-card:nth-child(1) { animation-delay: 0.2s; }
+        .team-card:nth-child(2) { animation-delay: 0.4s; }
+        .team-card:nth-child(3) { animation-delay: 0.6s; }
+
+        /* Professional Hover Animation */
+        .team-card:hover {
+            transform: translateY(-12px);
+            border-color: rgba(16, 185, 129, 0.3);
+            box-shadow: 0 30px 60px rgba(16, 185, 129, 0.1);
+        }
+        
+        [data-theme="dark"] .team-card:hover {
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+        }
+
+        .image-wrapper {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 24px auto;
+            border-radius: 50%;
+            padding: 6px;
+            background: linear-gradient(135deg, var(--brand), rgba(16, 185, 129, 0.1));
+            position: relative;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .team-card:hover .image-wrapper {
+            transform: scale(1.05) translateY(-5px);
+        }
+
+        .image-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 4px solid var(--surface);
+            filter: grayscale(10%) contrast(1.05);
+            transition: all 0.5s ease;
+        }
+
+        .team-card:hover .image-wrapper img {
+            filter: grayscale(0%) contrast(1);
+        }
+
+        .card-content {
+            text-align: center;
+        }
+
+        .card-content h2 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 0.5rem;
+            color: var(--text-main);
+            cursor: default;
+        }
+
+        .card-content h2 .letter-anim {
+            display: inline-block;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.2s ease, text-shadow 0.2s ease;
+        }
+
+        .card-content h2 .letter-anim:hover {
+            color: var(--brand);
+            transform: translateY(-8px) scale(1.15) rotate(4deg);
+            text-shadow: 0 10px 20px rgba(16, 185, 129, 0.4);
+            z-index: 10;
+            position: relative;
+        }
+
+        [data-theme="dark"] .card-content h2 .letter-anim:hover {
+            text-shadow: 0 10px 20px rgba(52, 211, 153, 0.6);
+        }
+
+        .card-content .role {
+            display: inline-block;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--brand);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 16px;
+            padding: 4px 12px;
+            background: var(--brand-glow);
+            border: 1px solid rgba(16, 185, 129, 0.15);
+            border-radius: 100px;
+        }
+
+        .card-content p {
+            font-size: 1.05rem;
+            line-height: 1.8;
+            color: var(--text-muted);
+            text-align: justify;
+        }
+
+        /* ═══ Responsive ═══ */
+        @media (max-width: 900px) {
+            .team-grid {
+                grid-template-columns: 1fr; /* Stack vertically on small mobile screens */
+            }
+            .team-card {
+                padding: 40px 24px;
+            }
+            .image-wrapper {
+                width: 160px;
+                height: 160px;
+            }
+            .card-content h2 {
+                font-size: 2rem;
+            }
+            .top-nav {
+                padding: 1rem 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    <nav class="top-nav">
+        <a href="landing.html" class="back-logo">
+            <img src="assets/images/logo.jpg" alt="ECOZONE Logo">
+            <span>Return to Home</span>
+        </a>
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+            <span id="themeIcon">🌙</span>
+        </button>
+    </nav>
+
+    <main class="about-container">
+        <header class="about-header">
+            <h1>Meet the Minds</h1>
+            <p>Behind ECOZONE</p>
+        </header>
+
+        <div class="team-grid">
+            <!-- Kevin's Profile -->
+            <div class="team-card">
+                <div class="image-wrapper">
+                    <img src="kevin.jpg" alt="Kevin Trazie C. Librero">
+                </div>
+                <div class="card-content">
+                    <h2>Kevin Trazie C. Librero</h2>
+                    <div class="role">IT Officer Trainee</div>
+                    <p>Focuses on backend systems and hardware integrations for the ECOZONE platform.</p>
+                </div>
+            </div>
+            
+            <!-- Razel's Profile -->
+            <div class="team-card">
+                <div class="image-wrapper">
+                    <img src="razel.png" alt="Razel T. Herodias">
+                </div>
+                <div class="card-content">
+                    <h2>Razel T. Herodias</h2>
+                    <div class="role">IT Officer Trainee</div>
+                    <p>Designs intuitive, modern user interfaces to enhance the ECOZONE experience.</p>
+                </div>
+            </div>
+
+            <!-- Miko's Profile -->
+            <div class="team-card">
+                <div class="image-wrapper">
+                    <img src="miko.jpg" alt="Miko">
+                </div>
+                <div class="card-content">
+                    <h2>Miko R. Zamora</h2>
+                    <div class="role">IT Officer Trainee</div>
+                    <p>Ensures smooth IT operations and provides technical support across ECOZONE.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Theme Toggle Script (Exactly same as Landing and Kiosk) -->
+    <script>
+        const html = document.documentElement;
+        const themeBtn = document.getElementById('themeToggle');
+        const themeIconEl = document.getElementById('themeIcon');
+        
+        let currentTheme = localStorage.getItem('eco-theme') || 'light';
+        if (currentTheme === 'dark') {
+            html.setAttribute('data-theme', 'dark');
+            if (themeIconEl) themeIconEl.innerHTML = '&#x2600;&#xFE0F;';
+        }
+        
+        if (themeBtn) {
+            themeBtn.addEventListener('click', () => {
+                if (html.getAttribute('data-theme') === 'dark') {
+                    html.removeAttribute('data-theme');
+                    localStorage.setItem('eco-theme', 'light');
+                    if (themeIconEl) themeIconEl.innerHTML = '🌙';
+                } else {
+                    html.setAttribute('data-theme', 'dark');
+                    localStorage.setItem('eco-theme', 'dark');
+                    if (themeIconEl) themeIconEl.innerHTML = '&#x2600;&#xFE0F;';
+                }
+            });
+        }
+
+        // Interactive Name Animation Logic
+        document.querySelectorAll('.card-content h2').forEach(nameElement => {
+            const words = nameElement.textContent.split(' ');
+            nameElement.innerHTML = '';
+            words.forEach((word, index) => {
+                const wordSpan = document.createElement('span');
+                wordSpan.style.whiteSpace = 'nowrap';
+                [...word].forEach(char => {
+                    const charSpan = document.createElement('span');
+                    charSpan.textContent = char;
+                    charSpan.className = 'letter-anim';
+                    wordSpan.appendChild(charSpan);
+                });
+                nameElement.appendChild(wordSpan);
+                if (index < words.length - 1) {
+                    nameElement.appendChild(document.createTextNode(' '));
+                }
+            });
+        });
+    </script>
+</body>
+</html>

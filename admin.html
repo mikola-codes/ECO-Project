@@ -5,21 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ECOZONE - Secure Admin Panel</title>
     <link rel="stylesheet" href="assets/css/admin-premium-v5.css">
-    <style>
-        /* Embedded Dark Mode Variables to guarantee cache-busting */
-        :root, :root[data-theme="dark"] {
-            --bg-void: #09090b !important;
-            --bg-surface: #18181b !important;
-            --bg-surface-hover: #27272a !important;
-            --border-dim: #27272a !important;
-            --border-focus: #3f3f46 !important;
-            --text-primary: #f4f4f5 !important;
-            --text-secondary: #a1a1aa !important;
-        }
-    </style>
     <script>
         document.documentElement.classList.add('js-enabled');
-        document.documentElement.setAttribute('data-theme', 'dark'); // Force dark mode
+        if (localStorage.getItem('eco-theme') === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
     </script>
 </head>
 <body>
@@ -28,8 +18,8 @@
             <img src="assets/images/logo.jpg" alt="ECOZONE" style="width:32px; height:32px; border-radius:8px; filter:grayscale(100%);"> ECOZONE SECURE
         </a>
         <div class="vault-actions">
-            <div id="liveClock" style="font-family: var(--font-mono); font-size: 13px;"></div>
-            <button class="vault-btn-outline" id="logoutBtn" onclick="logout()" style="display:none; padding: 6px 12px; font-size: 11px;">DISCONNECT</button>
+            <button class="vault-btn-outline" id="themeToggle" aria-label="Toggle dark mode" style="padding: 6px 12px; font-size: 14px; border-radius: 100px; display: flex; align-items: center; justify-content: center;"><span id="themeIcon">🌙</span></button>
+            <button class="vault-btn-outline" id="logoutBtn" onclick="promptLogout()" style="display:none; padding: 6px 12px; font-size: 11px;">LOGOUT</button>
         </div>
     </nav>
 
@@ -38,7 +28,7 @@
         <div class="terminal-box">
             <div class="terminal-header">SYSTEM LOCKED</div>
             <div class="terminal-sub">AWAITING ADMINISTRATOR CREDENTIALS</div>
-            <input type="password" id="adminPwd" class="terminal-input" placeholder="••••••••" autocomplete="off">
+            <input type="password" id="adminPwd" class="terminal-input" placeholder="Enter password" autocomplete="off">
             <button id="loginBtn" class="terminal-btn" onclick="attemptLogin()">AUTHORIZE ACCESS</button>
             <div id="loginErr" style="color: var(--accent-danger); font-family: var(--font-mono); font-size: 12px; margin-top: 16px; text-align: center;"></div>
         </div>
@@ -213,14 +203,22 @@
             </div>
         </div>
     </div>
+
+    <!-- Logout Modal -->
+    <div id="logoutOverlay" class="overlay">
+        <div class="modal-box">
+            <div class="modal-title" style="color: var(--accent-danger);">CONFIRM LOGOUT</div>
+            <p class="modal-text">Are you sure you want to log out of the admin panel?</p>
+            <div class="modal-btns">
+                <button class="vault-btn-outline" onclick="cancelLogout()">CANCEL</button>
+                <button class="vault-btn-primary" style="background: var(--accent-danger);" onclick="executeLogout()">LOGOUT</button>
+            </div>
+        </div>
+    </div>
     
     <script>
         function showMsg(el, msg, cls) { el.textContent = msg; el.className = 'fmsg ' + cls; setTimeout(function () { el.textContent = '' }, 4500) }
         function esc(s) { var d = document.createElement('div'); d.appendChild(document.createTextNode(s == null ? '' : String(s))); return d.innerHTML }
-
-        var CLK = document.getElementById('liveClock');
-        function tick() { var n = new Date(); CLK.textContent = n.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) + '  •  ' + n.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) }
-        if(CLK) { tick(); setInterval(tick, 1000); }
 
         var loginGate = document.getElementById('loginGate'), adminPanel = document.getElementById('adminPanel');
         var pwdInp = document.getElementById('adminPwd'), loginErr = document.getElementById('loginErr'), loginBtn = document.getElementById('loginBtn');
@@ -232,7 +230,7 @@
 
         var maMsg = document.getElementById('maMsg'), maBtn = document.getElementById('maBtn');
         var maBody = document.getElementById('maBody'), maCount = document.getElementById('maCount'), maStatus2 = document.getElementById('maStatus2');
-        var dutyLabels = { ON_FIELD_DUTY: '🚛 Field Duty', COMPANY_TASK: '🏢 Company Task', OFFICIAL_BUSINESS: '💼 Official Business', LATE_EXCUSED: '⏰ Late Excused', ADMIN_OVERRIDE: '🔑 Admin Override' };
+        var dutyLabels = { ON_FIELD_DUTY: ' Field Duty', COMPANY_TASK: 'ðŸ¢ Company Task', OFFICIAL_BUSINESS: ' Official Business', LATE_EXCUSED: 'â° Late Excused', ADMIN_OVERRIDE: ' Admin Override' };
         var dutyCls = { ON_FIELD_DUTY: 'dt-field', COMPANY_TASK: 'dt-task', OFFICIAL_BUSINESS: 'dt-official', LATE_EXCUSED: 'dt-excused', ADMIN_OVERRIDE: 'dt-override' };
 
         var roleBody = document.getElementById('roleBody'), roleCount = document.getElementById('roleCount');
@@ -256,14 +254,14 @@
             fetch('api/holidays.php?check_today=1').then(function (r) { return r.json() }).then(function (d) {
                 if (d.is_holiday) {
                     var b = document.getElementById('todayBanner'), t = document.getElementById('todayBannerText');
-                    t.textContent = 'TODAY IS A ' + d.holiday_type.replace(/_/g, ' ') + ' HOLIDAY — ' + d.holiday_name + '. Attendance will be tagged accordingly.';
+                    t.textContent = 'TODAY IS A ' + d.holiday_type.replace(/_/g, ' ') + ' HOLIDAY - ' + d.holiday_name + '. Attendance will be tagged accordingly.';
                     b.style.display = 'block';
                 }
             }).catch(function () { });
         }
 
         function loadHolidays() {
-            hBody.innerHTML = ''; hStatus.textContent = 'Loading…'; hStatus.style.display = 'block';
+            hBody.innerHTML = ''; hStatus.textContent = 'Loading...'; hStatus.style.display = 'block';
             fetch('api/holidays.php').then(function (r) { return r.json() }).then(function (d) {
                 if (!d.success) { hStatus.textContent = 'Error: ' + d.message; return }
                 hAllData = d.data; renderHolidays(hAllData);
@@ -282,10 +280,10 @@
                 tr.innerHTML = '<td style="font-weight:700">' + esc(h.holiday_name) + '</td>'
                     + '<td>' + dtStr + '</td>'
                     + '<td><span class="badge-pill ht-' + h.holiday_type.toLowerCase() + '">' + (hTypeLabels[h.holiday_type] || h.holiday_type) + '</span></td>'
-                    + '<td>' + (rec ? '<span class="badge badge-neutral">♻️ Yearly</span>' : (h.year_specific ? '<span style="color:var(--text-secondary);font-size:12px">' + h.year_specific + ' only</span>' : '—')) + '</td>'
+                    + '<td>' + (rec ? '<span class="badge badge-neutral">Yearly</span>' : (h.year_specific ? '<span style="color:var(--text-secondary);font-size:12px">' + h.year_specific + ' only</span>' : '-')) + '</td>'
                     + '<td style="text-align:right;white-space:nowrap">'
-                    + '<button class="ibtn ibtn-edit" onclick="hStartEdit(' + JSON.stringify(h).replace(/"/g, '&quot;') + ')">✏️ Edit</button>'
-                    + '<button class="ibtn ibtn-del" onclick="requestDelete(\'holiday\',' + h.holiday_id + ',\'' + esc(h.holiday_name).replace(/'/g, "\\'") + '\')">🗑️</button>'
+                    + '<button class="ibtn ibtn-edit" onclick="hStartEdit(' + JSON.stringify(h).replace(/"/g, '&quot;') + ')">Edit</button>'
+                    + '<button class="ibtn ibtn-del" onclick="requestDelete(\'holiday\',' + h.holiday_id + ',\'' + esc(h.holiday_name).replace(/'/g, "\\'") + '\')">Delete</button>'
                     + '</td>';
                 hBody.appendChild(tr);
             }
@@ -297,13 +295,13 @@
             var type = document.getElementById('hType').value;
             if (!name) { showMsg(hMsg, 'Enter a holiday name.', 'err'); return }
             if (!date) { showMsg(hMsg, 'Select a date.', 'err'); return }
-            hAddBtn.disabled = true; hAddBtn.textContent = 'Adding…';
+            hAddBtn.disabled = true; hAddBtn.textContent = 'Adding...';
             var fd = new FormData(); fd.append('holiday_name', name); fd.append('holiday_date', date); fd.append('holiday_type', type); fd.append('is_recurring', '0'); fd.append('year_specific', date.split('-')[0]);
             fetch('api/holidays.php', { method: 'POST', body: fd }).then(function (r) { return r.json() }).then(function (d) {
                 hAddBtn.disabled = false; hAddBtn.textContent = 'REGISTER';
-                if (d.success) { showMsg(hMsg, '✅ ' + name + ' added!', 'ok'); document.getElementById('hName').value = ''; document.getElementById('hDate').value = ''; loadHolidays(); checkTodayHoliday() }
-                else showMsg(hMsg, '❌ ' + d.message, 'err');
-            }).catch(function (e) { hAddBtn.disabled = false; hAddBtn.textContent = 'REGISTER'; showMsg(hMsg, '❌ ' + e, 'err') });
+                if (d.success) { showMsg(hMsg, 'Success: ' + name + ' added!', 'ok'); document.getElementById('hName').value = ''; document.getElementById('hDate').value = ''; loadHolidays(); checkTodayHoliday() }
+                else showMsg(hMsg, 'Error: ' + d.message, 'err');
+            }).catch(function (e) { hAddBtn.disabled = false; hAddBtn.textContent = 'REGISTER'; showMsg(hMsg, 'Error: ' + e, 'err') });
         }
 
         function hStartEdit(h) {
@@ -316,7 +314,7 @@
             cells[0].innerHTML = '<input class="edit-inp" id="hEditName" value="' + esc(h.holiday_name) + '">';
             cells[1].innerHTML = '<input class="edit-inp" id="hEditDate" type="date" value="' + h.holiday_date + '">';
             cells[2].innerHTML = sel; cells[3].innerHTML = '';
-            cells[4].innerHTML = '<button class="ibtn ibtn-save" onclick="hSaveEdit(' + h.holiday_id + ')">💾 Save</button>'
+            cells[4].innerHTML = '<button class="ibtn ibtn-save" onclick="hSaveEdit(' + h.holiday_id + ')"> Save</button>'
                 + '<button class="ibtn ibtn-cancel" onclick="hCancelEdit()">Cancel</button>';
         }
         function hCancelEdit() { hEditingId = null; renderHolidays(hAllData) }
@@ -328,8 +326,8 @@
             var body = 'holiday_id=' + id + '&holiday_name=' + encodeURIComponent(name) + '&holiday_date=' + encodeURIComponent(date) + '&holiday_type=' + encodeURIComponent(type) + '&is_recurring=0&year_specific=' + date.split('-')[0];
             fetch('api/holidays.php', { method: 'PUT', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body })
                 .then(function (r) { return r.json() }).then(function (d) {
-                    hEditingId = null; if (d.success) { showMsg(hMsg, '✅ Holiday updated!', 'ok'); loadHolidays() }
-                    else { showMsg(hMsg, '❌ ' + d.message, 'err'); renderHolidays(hAllData) }
+                    hEditingId = null; if (d.success) { showMsg(hMsg, 'Success: Holiday updated!', 'ok'); loadHolidays() }
+                    else { showMsg(hMsg, 'Error: ' + d.message, 'err'); renderHolidays(hAllData) }
                 }).catch(function () { hEditingId = null; renderHolidays(hAllData) });
         }
 
@@ -340,7 +338,7 @@
                 sel.innerHTML = '<option value="">-- Select Employee --</option>';
                 data.forEach(function (e) {
                     var o = document.createElement('option'); o.value = e.employee_id;
-                    o.textContent = 'ID ' + e.employee_id + ' — ' + e.nickname + (e.employee_role && e.employee_role !== 'REGULAR' ? ' [' + e.employee_role + ']' : '');
+                    o.textContent = 'ID ' + e.employee_id + ' - ' + e.nickname + (e.employee_role && e.employee_role !== 'REGULAR' ? ' [' + e.employee_role + ']' : '');
                     sel.appendChild(o);
                 });
             }).catch(function () { });
@@ -355,13 +353,13 @@
             var to = document.getElementById('maTimeOut').value;
             if (!eid) { showMsg(maMsg, 'Select an employee.', 'err'); return }
             if (!date) { showMsg(maMsg, 'Select a date.', 'err'); return }
-            maBtn.disabled = true; maBtn.textContent = 'Submitting…';
+            maBtn.disabled = true; maBtn.textContent = 'Submitting...';
             var fd = new FormData(); fd.append('employee_id', eid); fd.append('attendance_date', date); fd.append('duty_status', status); fd.append('duty_reason', reason); fd.append('time_in', ti); fd.append('time_out', to); fd.append('admin_notes', 'Entered by admin');
             fetch('api/manual_attendance.php', { method: 'POST', body: fd }).then(function (r) { return r.json() }).then(function (d) {
                 maBtn.disabled = false; maBtn.textContent = 'SUBMIT OVERRIDE';
-                if (d.success) { showMsg(maMsg, '✅ ' + d.message, 'ok'); document.getElementById('maReason').value = ''; loadManualRecords() }
-                else showMsg(maMsg, '❌ ' + d.message, 'err');
-            }).catch(function (e) { maBtn.disabled = false; maBtn.textContent = 'SUBMIT OVERRIDE'; showMsg(maMsg, '❌ ' + e, 'err') });
+                if (d.success) { showMsg(maMsg, 'Success: ' + d.message, 'ok'); document.getElementById('maReason').value = ''; loadManualRecords() }
+                else showMsg(maMsg, 'Error: ' + d.message, 'err');
+            }).catch(function (e) { maBtn.disabled = false; maBtn.textContent = 'SUBMIT OVERRIDE'; showMsg(maMsg, 'Error: ' + e, 'err') });
         }
 
         function loadManualRecords() {
@@ -375,9 +373,9 @@
                     tr.innerHTML = '<td style="font-weight:700">' + esc(r.nickname) + '<br><small style="color:var(--text-secondary)">ID ' + r.employee_id + '</small></td>'
                         + '<td>' + dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + '</td>'
                         + '<td><span class="badge-pill ' + (dutyCls[r.duty_status] || 'dt-field') + '">' + (dutyLabels[r.duty_status] || r.duty_status) + '</span></td>'
-                        + '<td style="font-size:12px">' + (r.time_in ? r.time_in.split(' ')[1] || r.time_in : '—') + ' → ' + (r.time_out ? r.time_out.split(' ')[1] || r.time_out : '—') + '</td>'
-                        + '<td style="font-size:12px;max-width:160px;word-break:break-word">' + esc(r.duty_reason || '—') + '</td>'
-                        + '<td style="text-align:right"><button class="ibtn ibtn-del" onclick="requestDelete(\'manual\',' + r.id + ',\'' + esc(r.nickname).replace(/'/g, "\\'") + '\')">🗑️</button></td>';
+                        + '<td style="font-size:12px">' + (r.time_in ? r.time_in.split(' ')[1] || r.time_in : '-') + ' -> ' + (r.time_out ? r.time_out.split(' ')[1] || r.time_out : '-') + '</td>'
+                        + '<td style="font-size:12px;max-width:160px;word-break:break-word">' + esc(r.duty_reason || '-') + '</td>'
+                        + '<td style="text-align:right"><button class="ibtn ibtn-del" onclick="requestDelete(\'manual\',' + r.id + ',\'' + esc(r.nickname).replace(/'/g, "\\'") + '\')">Delete</button></td>';
                     maBody.appendChild(tr);
                 });
             }).catch(function () { });
@@ -417,9 +415,9 @@
                     tr.innerHTML = '<td style="font-weight:700">' + esc(r.nickname) + '</td>'
                         + '<td>' + r.attendance_date + '</td>'
                         + '<td><span class="badge-pill ' + (dutyCls[r.duty_status] || 'dt-field') + '">' + (dutyLabels[r.duty_status] || r.duty_status) + '</span></td>'
-                        + '<td style="font-size:12px">' + (r.time_in || '—') + '</td>'
-                        + '<td style="font-size:12px">' + (r.time_out || '—') + '</td>'
-                        + '<td style="font-size:12px;max-width:130px;word-break:break-word">' + esc(r.duty_reason || '—') + '</td>'
+                        + '<td style="font-size:12px">' + (r.time_in || '-') + '</td>'
+                        + '<td style="font-size:12px">' + (r.time_out || '-') + '</td>'
+                        + '<td style="font-size:12px;max-width:130px;word-break:break-word">' + esc(r.duty_reason || '-') + '</td>'
                         + '<td style="font-size:11px;color:var(--text-secondary)">' + r.created_at + '</td>';
                     histBody.appendChild(tr);
                 });
@@ -437,7 +435,7 @@
             document.getElementById('confirmOverlay').classList.remove('show');
             var url = pendingDelete.type === 'holiday' ? 'api/holidays.php?id=' + pendingDelete.id : 'api/manual_attendance.php?id=' + pendingDelete.id;
             fetch(url, { method: 'DELETE' }).then(function (r) { return r.json() }).then(function (d) {
-                var msg = d.success ? '🗑️ Deleted.' : '❌ ' + d.message;
+                var msg = d.success ? 'Deleted.' : 'Error: ' + d.message;
                 var cls = d.success ? 'ok' : 'err';
                 if (pendingDelete && pendingDelete.type === 'holiday') { showMsg(hMsg, msg, cls); loadHolidays(); checkTodayHoliday() }
                 else { showMsg(maMsg, msg, cls); loadManualRecords() }
@@ -449,7 +447,7 @@
         function attemptLogin() {
             var pwd = pwdInp.value.trim();
             if (!pwd) { loginErr.textContent = 'Please enter the admin password.'; return }
-            loginBtn.disabled = true; loginBtn.textContent = 'Verifying…'; loginErr.textContent = '';
+            loginBtn.disabled = true; loginBtn.textContent = 'Verifying...'; loginErr.textContent = '';
             fetch('api/admin_auth.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pwd }) })
                 .then(function (r) { return r.json() }).then(function (d) {
                     loginBtn.disabled = false; loginBtn.textContent = 'AUTHORIZE ACCESS';
@@ -459,6 +457,7 @@
         }
         function showAdmin() {
             loginGate.style.display = 'none'; adminPanel.style.display = 'block';
+            document.getElementById('logoutBtn').style.display = 'inline-block';
             loadEmployees(); loadHolidays(); loadManualRecords(); loadRoles(); checkTodayHoliday();
         }
 
@@ -466,13 +465,28 @@
 
         // LOGS / ATTENDANCE TELEMETRY
         var logTableBody = document.getElementById("logTableBody"), recordCount = document.getElementById("recordCount"), statusMessage = document.getElementById("statusMessage"), allLogsData = [];
-        function loadLogs() {
+        function loadLogs(silent = false) {
             if(!logTableBody) return;
-            statusMessage.style.display = 'block'; statusMessage.innerHTML = '<span class="spinner"></span> CONNECTING...'; logTableBody.innerHTML = '';
+            if(!silent) { statusMessage.style.display = 'block'; statusMessage.innerHTML = '<span class="spinner"></span> CONNECTING...'; logTableBody.innerHTML = ''; }
             fetch('api/get_attendance.php').then(r => r.json()).then(d => {
-                if(d.success) { allLogsData = d.data; renderLogsTable(allLogsData); } else { statusMessage.innerHTML = '❌ ' + d.message; }
-            }).catch(e => { statusMessage.innerHTML = '❌ Error fetching logs.'; });
+                if(d.success) { 
+                    // Only re-render if data has changed or it's a non-silent load to prevent DOM flicker
+                    if (!silent || JSON.stringify(d.data) !== JSON.stringify(allLogsData)) {
+                        allLogsData = d.data; 
+                        renderLogsTable(allLogsData); 
+                    }
+                } else { 
+                    if(!silent) statusMessage.innerHTML = 'Error: ' + d.message; 
+                }
+            }).catch(e => { if(!silent) statusMessage.innerHTML = 'Error fetching logs.'; });
         }
+        
+        // Real-time polling every 5 seconds
+        setInterval(function() {
+            if (sessionStorage.getItem('eco_admin') === '1') {
+                loadLogs(true);
+            }
+        }, 5000);
 
         function renderLogsTable(data) {
             statusMessage.style.display = 'none'; logTableBody.innerHTML = ''; recordCount.textContent = data.length;
@@ -481,7 +495,7 @@
                 var tr = document.createElement('tr');
                 var dutyPill = log.duty_status === 'REGULAR' ? '<span class="badge badge-neutral">REGULAR</span>' : '<span class="badge badge-neutral">' + log.duty_status.replace(/_/g, ' ') + '</span>';
                 var statusPill = log.log_type === 'TIME_IN' ? '<span class="badge" style="background:var(--accent-glow);color:var(--accent-secure)">TIME IN</span>' : '<span class="badge badge-neutral">TIME OUT</span>';
-                var holidayStr = log.is_holiday == 1 ? '<span class="badge" style="background:rgba(239,68,68,0.1);color:var(--accent-danger)">HOLIDAY</span>' : '—';
+                var holidayStr = log.is_holiday == 1 ? '<span class="badge" style="background:rgba(239,68,68,0.1);color:var(--accent-danger)">HOLIDAY</span>' : '-';
                 tr.innerHTML = '<td>' + log.employee_id + '</td><td style="font-weight:600;">' + esc(log.nickname) + '</td><td>' + log.log_time + '</td><td>' + statusPill + '</td><td>' + holidayStr + '</td><td>' + dutyPill + '</td>';
                 logTableBody.appendChild(tr);
             });
@@ -516,10 +530,42 @@
             document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
 
-        function logout() { sessionStorage.removeItem('eco_admin'); window.location.href = 'index.html'; }
+        function promptLogout() { document.getElementById('logoutOverlay').classList.add('show'); }
+        function cancelLogout() { document.getElementById('logoutOverlay').classList.remove('show'); }
+        function executeLogout() {
+            fetch('api/logout.php').then(() => {
+                sessionStorage.removeItem('eco_admin');
+                window.location.href = 'landing.html';
+            });
+        }
+        var htmlEl = document.documentElement;
+        var tToggle = document.getElementById('themeToggle');
+        var tIcon = document.getElementById('themeIcon');
+        if (localStorage.getItem('eco-theme') === 'dark') {
+            if (tIcon) tIcon.textContent = '☀️';
+        } else {
+            if (tIcon) tIcon.textContent = '🌙';
+        }
+        if (tToggle) {
+            tToggle.addEventListener('click', function () {
+                var isDark = htmlEl.getAttribute('data-theme') === 'dark';
+                if (isDark) {
+                    htmlEl.removeAttribute('data-theme');
+                    localStorage.setItem('eco-theme', 'light');
+                    if (tIcon) tIcon.textContent = '🌙';
+                } else {
+                    htmlEl.setAttribute('data-theme', 'dark');
+                    localStorage.setItem('eco-theme', 'dark');
+                    if (tIcon) tIcon.textContent = '☀️';
+                }
+            });
+        }
+
         if (sessionStorage.getItem('eco_admin') === '1') showAdmin();
     </script>
 </body>
 </html>
+
+
 
 

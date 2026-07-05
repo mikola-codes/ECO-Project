@@ -30,22 +30,7 @@
     --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
 }
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        --bg-void: #09090b;
-        --bg-surface: #18181b;
-        --bg-surface-hover: #27272a;
-        --border-dim: #27272a;
-        --border-focus: #3f3f46;
-        
-        --text-primary: #f4f4f5;
-        --text-secondary: #a1a1aa;
-        
-        --shadow-sm: 0 1px 2px rgba(0,0,0,0.5);
-        --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.4);
-        --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.5);
-    }
-}
+
 
 :root[data-theme="dark"] {
     --bg-void: #09090b;
@@ -79,9 +64,6 @@ body {
     border-bottom: 1px solid var(--border-dim);
     display: flex; align-items: center; justify-content: space-between;
     padding: 0 32px; z-index: 1000;
-}
-@media (prefers-color-scheme: dark) {
-    .vault-nav { background: rgba(24, 24, 27, 0.8); }
 }
 :root[data-theme="dark"] .vault-nav { background: rgba(24, 24, 27, 0.8); }
 

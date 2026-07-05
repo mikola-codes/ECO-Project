@@ -1,6 +1,7 @@
 <?php
 // get_attendance.php — Get attendance records (id, nickname, time)
 include 'config.php';
+require_once 'auth_guard.php';
 header('Content-Type: application/json');
 
 // Optional date filter: ?date=YYYY-MM-DD

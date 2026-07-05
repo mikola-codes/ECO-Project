@@ -6,6 +6,7 @@
  * PUT  employee_roles.php              → update an employee's role
  */
 include 'config.php';
+require_once 'auth_guard.php';
 header('Content-Type: application/json');
 
 if (empty($_SESSION['is_admin'])) {

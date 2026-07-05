@@ -1,6 +1,7 @@
 <?php
 // get_employees.php — Get list of registered employees
 include 'config.php';
+require_once 'auth_guard.php';
 header('Content-Type: application/json');
 
 $stmt = mysqli_prepare($connection, 

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -195,6 +195,7 @@
         </a>
         <div class="nav-actions">
             <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode" style="margin-right: 12px;"><span id="themeIcon">&#x1F319;</span></button>
+            <a href="about.html">Developers</a>
             <a href="index.html">← Back to Kiosk</a>
         </div>
     </nav>
@@ -263,29 +264,25 @@
     </main>
 
     <script>
-        // =============================================
-        // Theme Toggle
-        // =============================================
-        var html = document.documentElement;
-        var themeBtn = document.getElementById('themeToggle');
+        // Theme Toggle Logic
+        var themeToggle = document.getElementById('themeToggle');
         var themeIconEl = document.getElementById('themeIcon');
-
-        if (localStorage.getItem('eco-theme') === 'dark') {
-            html.setAttribute('data-theme', 'dark');
-            if (themeIconEl) themeIconEl.innerHTML = '&#x2600;';
+        var savedTheme = localStorage.getItem('eco-theme');
+        if (savedTheme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            if (themeIconEl) themeIconEl.innerHTML = '&#x2600;&#xFE0F;';
         }
-        if (themeBtn) {
-            themeBtn.addEventListener('click', function () {
-                var isDark = html.getAttribute('data-theme') === 'dark';
-                if (isDark) {
-                    html.removeAttribute('data-theme');
+        if (themeToggle) {
+            themeToggle.addEventListener('click', function () {
+                if (document.documentElement.getAttribute('data-theme') === 'dark') {
+                    document.documentElement.removeAttribute('data-theme');
                     localStorage.setItem('eco-theme', 'light');
                     if (themeIconEl) themeIconEl.innerHTML = '&#x1F319;';
-        } else {
-                    html.setAttribute('data-theme', 'dark');
+                } else {
+                    document.documentElement.setAttribute('data-theme', 'dark');
                     localStorage.setItem('eco-theme', 'dark');
-                    if (themeIconEl) themeIconEl.innerHTML = '&#x2600;';
-        }
+                    if (themeIconEl) themeIconEl.innerHTML = '&#x2600;&#xFE0F;';
+                }
             });
         }
 
@@ -539,8 +536,6 @@
     </div>
 </body>
 </html>
-
-
 
 
 

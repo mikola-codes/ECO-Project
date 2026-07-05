@@ -10,6 +10,7 @@
  * DELETE manual_attendance.php?id=5                → delete entry
  */
 include 'config.php';
+require_once 'auth_guard.php';
 header('Content-Type: application/json');
 
 if (empty($_SESSION['is_admin'])) {

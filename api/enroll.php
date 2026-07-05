@@ -1,5 +1,6 @@
 <?php
 include 'config.php';
+require_once 'auth_guard.php';
 header('Content-Type: application/json');
 
 // IP-based Throttling (Max 1 request per second)

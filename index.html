@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -103,10 +103,9 @@
             position: relative; padding: 120px 24px 40px;
         }
 
-        /* ═══ Kiosk Card — Same Bento styling as landing.html ═══ */
         .kiosk-card {
-            position: relative; z-index: 10; width: 100%; max-width: 560px; text-align: center;
-            padding: 56px 48px; border-radius: 28px;
+            position: relative; z-index: 10; width: 100%; max-width: 380px; text-align: center;
+            padding: 32px 24px; border-radius: 24px;
             background: var(--surface); border: 1px solid var(--border);
             backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
             box-shadow: 0 20px 40px rgba(0,0,0,0.03);
@@ -125,7 +124,7 @@
         }
 
         /* ═══ Scanner ═══ */
-        .scanner-wrapper { position: relative; width: 160px; height: 160px; margin: 0 auto 32px; cursor: pointer; }
+        .scanner-wrapper { position: relative; width: 100px; height: 100px; margin: 0 auto 20px; cursor: pointer; }
         .scanner-icon {
             width: 100%; height: 100%; color: var(--brand);
             filter: drop-shadow(0 0 12px var(--brand-glow));
@@ -152,20 +151,20 @@
 
         /* ═══ Typography — Matching landing.html ═══ */
         .kiosk-title {
-            font-size: clamp(36px, 5vw, 48px); font-weight: 800;
-            letter-spacing: -0.04em; line-height: 1.1; margin-bottom: 16px;
+            font-size: clamp(24px, 4vw, 32px); font-weight: 800;
+            letter-spacing: -0.03em; line-height: 1.2; margin-bottom: 8px;
             background: linear-gradient(135deg, #059669 0%, #34d399 100%);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
         .kiosk-desc {
-            font-size: clamp(16px, 2vw, 20px); color: var(--text-muted);
-            font-weight: 500; line-height: 1.6; margin-bottom: 40px;
+            font-size: clamp(14px, 1.5vw, 15px); color: var(--text-muted);
+            font-weight: 500; line-height: 1.5; margin-bottom: 24px;
         }
 
         /* ═══ Button — Same as landing.html .btn-primary ═══ */
         .btn-kiosk {
             background: var(--text-main); color: #fff; border: none;
-            padding: 18px 40px; border-radius: 100px; font-size: 16px; font-weight: 700;
+            padding: 14px 32px; border-radius: 100px; font-size: 15px; font-weight: 700;
             cursor: pointer; transition: all 0.3s; display: inline-flex;
             align-items: center; justify-content: center; gap: 8px; width: 100%;
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -221,7 +220,8 @@
         </a>
         <div class="nav-actions">
             <div id="liveClock" class="nav-clock"></div>
-            <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode"><span id="themeIcon">&#x1F319;</span></button>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode"><span id="themeIcon">🌙</span></button>
+            <a href="about.html">Developers</a>
             <a href="admin.html">Admin Console</a>
         </div>
     </nav>
@@ -269,7 +269,7 @@
 
         if (localStorage.getItem('eco-theme') === 'dark') {
             html.setAttribute('data-theme', 'dark');
-            if (themeIconEl) themeIconEl.innerHTML = '&#x2600;';
+            if (themeIconEl) themeIconEl.textContent = '☀️';
         }
         if (themeBtn) {
             themeBtn.addEventListener('click', function () {
@@ -277,12 +277,12 @@
                 if (isDark) {
                     html.removeAttribute('data-theme');
                     localStorage.setItem('eco-theme', 'light');
-                    if (themeIconEl) themeIconEl.innerHTML = '&#x1F319;';
-        } else {
+                    if (themeIconEl) themeIconEl.textContent = '🌙';
+                } else {
                     html.setAttribute('data-theme', 'dark');
                     localStorage.setItem('eco-theme', 'dark');
-                    if (themeIconEl) themeIconEl.innerHTML = '&#x2600;';
-        }
+                    if (themeIconEl) themeIconEl.textContent = '☀️';
+                }
             });
         }
 
@@ -455,8 +455,8 @@
         }
     </script>
     <!-- Scan Feedback Modal -->
-    <div id="scanFeedbackModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease;">
-        <div id="scanFeedbackCard" class="kiosk-card" style="max-width: 400px; padding: 40px 32px; background: rgba(20, 20, 20, 0.95); box-shadow: 0 24px 64px rgba(0,0,0,0.5); border-radius: 24px; text-align: center; transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+    <div id="scanFeedbackModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); z-index: 9999; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s;">
+        <div id="scanFeedbackCard" class="kiosk-card" style="max-width: 320px; padding: 32px 24px; background: rgba(20, 20, 20, 0.95); box-shadow: 0 24px 64px rgba(0,0,0,0.5); border-radius: 20px; text-align: center; transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
             <div id="scanFeedbackIcon" style="font-size: 48px; margin-bottom: 20px;"></div>
             <h2 id="scanFeedbackTitle" style="margin: 0 0 12px 0; color: #fff; font-size: 24px; font-weight: 700;"></h2>
             <p id="scanFeedbackText" style="color: rgba(255,255,255,0.7); line-height: 1.5; margin: 0 0 24px 0; font-size: 15px;"></p>
@@ -465,6 +465,4 @@
     </div>
 </body>
 </html>
-
-
 

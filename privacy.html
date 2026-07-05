@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - ECOZONE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --surface: rgba(255, 255, 255, 0.7);
+            --brand: #10b981;
+            --brand-glow: rgba(16, 185, 129, 0.25);
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --border: rgba(0, 0, 0, 0.08);
+        }
+        [data-theme="dark"] {
+            --bg: #09090b;
+            --surface: rgba(24, 24, 27, 0.6);
+            --brand: #34d399;
+            --brand-glow: rgba(52, 211, 153, 0.15);
+            --text-main: #f4f4f5;
+            --text-muted: #a1a1aa;
+            --border: rgba(255, 255, 255, 0.06);
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: var(--bg); color: var(--text-main);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            transition: background-color 0.3s, color 0.3s;
+            line-height: 1.6;
+        }
+
+        /* Navbar */
+        nav {
+            position: fixed; top: 0; width: 100%; height: 80px; z-index: 1000;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 40px; backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            background: rgba(255,255,255,0.8); border-bottom: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+        [data-theme="dark"] nav { background: rgba(9,9,11,0.8); }
+        .nav-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text-main); font-weight: 800; font-size: 18px; letter-spacing: 0.05em; }
+        .nav-logo { width: 32px; height: 32px; border-radius: 8px; }
+        .nav-actions { display: flex; align-items: center; gap: 12px; }
+        .nav-actions a { color: var(--text-main); text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 24px; background: rgba(0,0,0,0.05); border: 1px solid var(--border); border-radius: 100px; transition: all 0.3s; }
+        .nav-actions a:hover { background: var(--brand); color: #fff; transform: scale(1.05); }
+        [data-theme="dark"] .nav-actions a { background: rgba(255,255,255,0.05); }
+
+        .theme-toggle {
+            background: transparent; border: 1px solid var(--border); border-radius: 100px;
+            padding: 8px 16px; cursor: pointer; color: var(--text-main); font-size: 16px; transition: all 0.3s;
+        }
+        .theme-toggle:hover { background: var(--brand-glow); }
+
+        /* Container */
+        .legal-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 140px 24px 80px;
+        }
+
+        .legal-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .legal-header h1 {
+            font-size: clamp(2.5rem, 4vw, 3.5rem);
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #059669 0%, #34d399 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .legal-header p {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .legal-content {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 48px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.03);
+            backdrop-filter: blur(20px);
+        }
+
+        .legal-content h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-top: 40px;
+            margin-bottom: 16px;
+            color: var(--text-main);
+        }
+
+        .legal-content h2:first-child { margin-top: 0; }
+
+        .legal-content p, .legal-content ul {
+            font-size: 1rem;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .legal-content ul {
+            padding-left: 24px;
+        }
+
+        .legal-content li {
+            margin-bottom: 8px;
+        }
+
+        @media (max-width: 768px) {
+            nav { padding: 0 20px; }
+            .legal-content { padding: 32px 24px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav>
+        <a href="landing.html" class="nav-brand">
+            <img src="assets/images/logo.jpg" alt="ECOZONE" class="nav-logo">
+            ECOZONE
+        </a>
+        <div class="nav-actions">
+            <button class="theme-toggle" id="themeToggle">🌙</button>
+            <a href="landing.html">Back to Home</a>
+        </div>
+    </nav>
+
+    <div class="legal-container">
+        <div class="legal-header">
+            <h1>Privacy Policy</h1>
+            <p>Last Updated: July 2026</p>
+        </div>
+
+        <div class="legal-content">
+            <h2>1. Introduction</h2>
+            <p>At ECOZONE, we take your privacy seriously. This Privacy Policy explains how we collect, use, store, and protect your personal and biometric information when you use the ECOZONE Enterprise Biometric Identity System.</p>
+
+            <h2>2. Information We Collect</h2>
+            <p>To provide our services efficiently, we collect the following types of information:</p>
+            <ul>
+                <li><strong>Personal Data:</strong> First name, last name, and role/designation.</li>
+                <li><strong>Biometric Data:</strong> Fingerprint data used exclusively for time-in and time-out verification.</li>
+                <li><strong>Usage Data:</strong> System logs, timestamps of your attendance, and kiosk interaction history.</li>
+            </ul>
+
+            <h2>3. How We Use Your Information</h2>
+            <p>Your data is strictly used for the core functionality of the ECOZONE system:</p>
+            <ul>
+                <li>Verifying your identity securely and quickly at the kiosk.</li>
+                <li>Recording accurate time-in and time-out attendance logs.</li>
+                <li>Generating attendance reports for administrative and payroll purposes.</li>
+            </ul>
+
+            <h2>4. Security & Biometric Protection</h2>
+            <p>We implement state-of-the-art security measures to protect your data. <strong>Your raw fingerprint images are NEVER stored.</strong> Instead, the system converts your fingerprint into a mathematical cryptographic template (a hash). This process is one-way, meaning it is impossible to reverse-engineer your actual fingerprint from the data we store.</p>
+
+            <h2>5. Data Sharing & Third Parties</h2>
+            <p>We do not sell, trade, or otherwise transfer your personal or biometric information to outside parties. Your data remains strictly within the organization's encrypted database and is accessible only to authorized administrators.</p>
+
+            <h2>6. Your Rights</h2>
+            <p>You have the right to request access to the data we hold about you. You may also request the deletion of your biometric data from our systems upon leaving the organization or withdrawing your consent, subject to organizational policies.</p>
+
+            <h2>7. Contact Us</h2>
+            <p>If you have any questions regarding this Privacy Policy or how your biometric data is handled, please contact your system administrator or the IT Officer Trainees managing the ECOZONE platform.</p>
+        </div>
+    </div>
+
+    <script>
+        // Theme toggler logic identical to the rest of the application
+        const themeToggle = document.getElementById('themeToggle');
+        const root = document.documentElement;
+        
+        function setTheme(isDark) {
+            if (isDark) {
+                root.setAttribute('data-theme', 'dark');
+                themeToggle.innerHTML = '☀️';
+                localStorage.setItem('eco_theme', 'dark');
+            } else {
+                root.removeAttribute('data-theme');
+                themeToggle.innerHTML = '🌙';
+                localStorage.setItem('eco_theme', 'light');
+            }
+        }
+        
+        const savedTheme = localStorage.getItem('eco_theme');
+        setTheme(savedTheme === 'dark');
+        
+        themeToggle.addEventListener('click', () => {
+            const isDark = root.hasAttribute('data-theme');
+            setTheme(!isDark);
+        });
+    </script>
+</body>
+</html>
